@@ -33,7 +33,8 @@ class _StepsState extends State<Steps> {
   ];
   @override
   Widget build(BuildContext context) {
-    return Stack(
+    return Scaffold(
+    body: Stack(
       children: [
         Positioned(child: Image.asset("assets/images/wave.png")),
         Padding(
@@ -44,7 +45,11 @@ class _StepsState extends State<Steps> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const Login()));
+                    },
                     style: TextButton.styleFrom(
                       foregroundColor: Color(0xff0A898D),
                     ),
@@ -128,6 +133,7 @@ class _StepsState extends State<Steps> {
           ),
         ),
       ],
+    ),
     );
   }
 
