@@ -69,7 +69,7 @@ class _InterviewSetupState extends State<InterviewSetup> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.laptop_mac, color: Color(0xFF008B8B), size: 30),
+                  Icon(Icons.laptop_mac, color: Color(0xFF0A898D), size: 30),
                   SizedBox(width: 25),
 
                   Text(
@@ -155,7 +155,7 @@ class _InterviewSetupState extends State<InterviewSetup> {
                     "Beginner",
                     style: TextStyle(
                       color: _difficultyValue == 0
-                          ? Color(0xFF008B8B)
+                          ? Color(0xFF0A898D)
                           : Colors.grey,
                     ),
                   ),
@@ -163,7 +163,7 @@ class _InterviewSetupState extends State<InterviewSetup> {
                     "Intermediate",
                     style: TextStyle(
                       color: _difficultyValue == 1
-                          ? Color(0xFF008B8B)
+                          ? Color(0xFF0A898D)
                           : Colors.grey,
                     ),
                   ),
@@ -171,7 +171,7 @@ class _InterviewSetupState extends State<InterviewSetup> {
                     "Expert",
                     style: TextStyle(
                       color: _difficultyValue == 2
-                          ? Color(0xFF008B8B)
+                          ? Color(0xFF0A898D)
                           : Colors.grey,
                     ),
                   ),
@@ -185,7 +185,7 @@ class _InterviewSetupState extends State<InterviewSetup> {
               child: Container(
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                 decoration: BoxDecoration(
-                  color: Color(0xFF76B9B9),
+                  color: Color(0xFF0A898D),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
