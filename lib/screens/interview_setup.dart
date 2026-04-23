@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 class InterviewSetup extends StatefulWidget {
@@ -16,9 +15,9 @@ class _InterviewSetupState extends State<InterviewSetup> {
     return Scaffold(
       backgroundColor: Color(0xFFF8FAFF),
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(80), 
+        preferredSize: Size.fromHeight(80.0), 
         child: AppBar(
-          backgroundColor: Color(0xFF078B8B),
+          backgroundColor: Color(0xFF0A898D),
           elevation: 0,
           centerTitle: false,
           leading: Padding(
@@ -79,7 +78,7 @@ class _InterviewSetupState extends State<InterviewSetup> {
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
 
-                      color: Color(0xFF008B8B),
+                      color: Color(0xFF0A898D),
                     ),
                   ),
                 ],
@@ -130,10 +129,10 @@ class _InterviewSetupState extends State<InterviewSetup> {
             
             SliderTheme(
               data: SliderThemeData(
-                activeTrackColor: Color(0xFF008B8B),
+                activeTrackColor: Color(0xFF0A898D),
                 inactiveTrackColor: Colors.grey[300],
-                thumbColor: Color(0xFF008B8B),
-                overlayColor: Color(0xFF008B8B).withValues(alpha: 0.2),
+                thumbColor: Color(0xFF0A898D),
+                overlayColor: Color(0xFF0A898D).withValues(alpha: 0.2),
               ),
               child: Slider(
                 value: _difficultyValue,
@@ -213,7 +212,7 @@ class _InterviewSetupState extends State<InterviewSetup> {
               height: 55,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF008B8B),
+                  backgroundColor: Color(0xFF0A898D),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
@@ -238,7 +237,7 @@ class _InterviewSetupState extends State<InterviewSetup> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
         border: Border.all(
-          color: isSelected ? Color(0xFF008B8B) : Colors.transparent,
+          color: isSelected ? Color(0xFF0A898D) : Colors.transparent,
           width: 2,
         ),
         boxShadow: [
@@ -255,7 +254,7 @@ class _InterviewSetupState extends State<InterviewSetup> {
           Icon(
             icon,
             size: 40,
-            color: isSelected ? Color(0xFF008B8B) : Colors.grey,
+            color: isSelected ? Color(0xFF0A898D) : Colors.grey,
           ),
           SizedBox(height: 10),
           Text(
@@ -263,7 +262,7 @@ class _InterviewSetupState extends State<InterviewSetup> {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: isSelected ? Color(0xFF008B8B) : Colors.grey,
+              color: isSelected ? Color(0xFF0A898D) : Colors.grey,
             ),
           ),
         ],
