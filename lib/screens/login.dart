@@ -47,7 +47,7 @@ class _LoginState extends State<Login> {
                   "Login To Continue Your Prep",
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Color(0xff64748B),
+                    color: Color(0xff94A3B8),
                     fontStyle: FontStyle.italic,
                     fontSize: 16,
                   ),
@@ -57,20 +57,20 @@ class _LoginState extends State<Login> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(30),
-                    boxShadow: [
+                  boxShadow: [
                       BoxShadow(
                         color: Color(0xff1E293B).withValues(alpha: 0.1),
                         blurRadius: 20,
                         offset: Offset(0, 4),
                       ),
-                    ],
+                    ],  
                   ),
 
                   child: TextFormField(
                     decoration: InputDecoration(
                       hintText: "Email Address",
                       hintStyle: TextStyle(
-                        color: Color(0xff64748B),
+                        color: Color(0xff94A3B8),
                         fontSize: 14,
                       ),
                       prefixIcon: Icon(Icons.email, color: Color(0xff0A898D)),
@@ -97,7 +97,7 @@ class _LoginState extends State<Login> {
                     decoration: InputDecoration(
                       hintText: "Password",
                       hintStyle: TextStyle(
-                        color: Color(0xff64748B),
+                        color: Color(0xff94A3B8),
                         fontSize: 14,
                       ),
                       prefixIcon: Icon(Icons.lock, color: Color(0xff0A898D)),
@@ -178,7 +178,7 @@ class _LoginState extends State<Login> {
                           "Continue with google",
                           style: TextStyle(
                             fontSize: 20,
-                            color: Color(0xff0A0D2E),
+                            color: Color(0xff1E293B),
                           ),
                         ),
                       ],
