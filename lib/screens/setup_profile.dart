@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:app_projects/screens/Dashboard.dart';
+import 'package:app_projects/navigation_menu.dart';
+
 import 'dart:math' as math;
 
 class ProfileSetup extends StatefulWidget {
@@ -98,7 +99,7 @@ class _ProfileSetupState extends State<ProfileSetup> {
                     } else {
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(builder: (context) => Dashboard()),
+                        MaterialPageRoute(builder: (context) => MainWrapper()),
                       );
                     }
                   },
@@ -289,7 +290,7 @@ class _ProfileSetupState extends State<ProfileSetup> {
       height: 6,
       width: 60,
       decoration: BoxDecoration(
-        color: isActive ? Color(0xff0A898D) : Color(0xffE2E8F0),
+        color: isActive ? Color(0xff0A898D) : Color(0xff94A3B8),
         borderRadius: BorderRadius.circular(10),
       ),
     );
@@ -311,7 +312,7 @@ class _ProfileSetupState extends State<ProfileSetup> {
       child: TextFormField(
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: TextStyle(color: Color(0xff64748B)),
+          hintStyle: TextStyle(color: Color(0xff94A3B8)),
           prefixIcon: Icon(icon, color: Color(0xff0A898D)),
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(vertical: 18),
@@ -457,7 +458,7 @@ class _ProfileSetupState extends State<ProfileSetup> {
                   SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: TextStyle(color: Color(0xff64748B), fontSize: 13),
+                    style: TextStyle(color: Color(0xff94A3B8), fontSize: 13),
                   ),
                 ],
               ),
