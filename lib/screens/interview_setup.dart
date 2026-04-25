@@ -91,7 +91,7 @@ class _InterviewSetupState extends State<InterviewSetup> {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Color(0xff0A0D2E),
+                color: Color(0xff1E293B),
               ),
             ),
             SizedBox(height: 15),
@@ -122,7 +122,7 @@ class _InterviewSetupState extends State<InterviewSetup> {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Color(0xff0A0D2E),
+                color: Color(0xff1E293B),
               ),
             ),
             SizedBox(height: 15),
