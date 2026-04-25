@@ -70,7 +70,7 @@ class _SignupState extends State<Signup> {
                     decoration: InputDecoration(
                       hintText: "Username",
                       hintStyle: TextStyle(
-                        color: Color(0xff64748B),
+                        color: Color(0xff94A3B8),
                         fontSize: 14,
                       ),
                       prefixIcon: Icon(Icons.person, color: Color(0xff0A898D)),
@@ -97,7 +97,7 @@ class _SignupState extends State<Signup> {
                     decoration: InputDecoration(
                       hintText: "Email Address",
                       hintStyle: TextStyle(
-                        color: Color(0xff64748B),
+                        color: Color(0xff94A3B8),
                         fontSize: 14,
                       ),
                       prefixIcon: Icon(Icons.email, color: Color(0xff0A898D)),
@@ -124,7 +124,7 @@ class _SignupState extends State<Signup> {
                     decoration: InputDecoration(
                       hintText: "Password",
                       hintStyle: TextStyle(
-                        color: Color(0xff64748B),
+                        color: Color(0xff94A3B8),
                         fontSize: 14,
                       ),
                       prefixIcon: Icon(Icons.lock, color: Color(0xff0A898D)),
@@ -205,7 +205,7 @@ class _SignupState extends State<Signup> {
                           "Continue with google",
                           style: TextStyle(
                             fontSize: 20,
-                            color: Color(0xff0A0D2E),
+                            color: Color(0xff1E293B),
                           ),
                         ),
                       ],
@@ -254,4 +254,3 @@ class _SignupState extends State<Signup> {
     );
   }
 }
-
