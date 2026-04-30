@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'package:app_projects/screens/interview_summary.dart';
 import 'package:flutter/material.dart';
 
 class InterviewRoom extends StatefulWidget {
@@ -13,7 +14,7 @@ class _InterviewRoomState extends State<InterviewRoom>
     with SingleTickerProviderStateMixin {
   int currentQuestionIndex = 0;
   Timer? _timer;
-  int _startSeconds = 900;
+  int _startSeconds = 100;
   late AnimationController _rotationController;
 
   final List<String> questions = [
@@ -40,17 +41,18 @@ class _InterviewRoomState extends State<InterviewRoom>
     )..repeat();
   }
 
-  void startTimer() {
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      if (_startSeconds == 0) {
-        _timer?.cancel();
-      } else {
-        setState(() {
-          _startSeconds--;
-        });
-      }
-    });
-  }
+ void startTimer() {
+  _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+    if (_startSeconds == 0) {
+      _timer?.cancel();
+      _goToSummary(); 
+    } else {
+      setState(() {
+        _startSeconds--;
+      });
+    }
+  });
+}
 
   String formatTime(int seconds) {
     int minutes = seconds ~/ 60;
@@ -59,31 +61,16 @@ class _InterviewRoomState extends State<InterviewRoom>
   }
 
   void nextQuestion() {
-    if (currentQuestionIndex < questions.length - 1) {
-      setState(() {
-        currentQuestionIndex++;
-      });
-    } else {
-      _showFinishDialog();
-    }
+  if (currentQuestionIndex < questions.length - 1) {
+    setState(() {
+      currentQuestionIndex++;
+    });
+  } else {
+    _goToSummary(); 
   }
+}
 
-  void _showFinishDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text("Session Completed"),
-        content: Text("Great job! You have answered all the questions."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("Finish", style: TextStyle(color: Color(0xff0A898D))),
-          ),
-        ],
-      ),
-    );
-  }
+  
 
   @override
   void dispose() {
@@ -262,7 +249,7 @@ class _InterviewRoomState extends State<InterviewRoom>
                     icon: Icons.person_off_rounded,
                     label: "End Session",
                     color: Colors.redAccent,
-                    onTap: () => Navigator.pop(context),
+                    onTap: _confirmEndSession,
                   ),
                 ],
               ),
@@ -273,7 +260,43 @@ class _InterviewRoomState extends State<InterviewRoom>
       ),
     );
   }
+void _goToSummary() {
+  _timer?.cancel();
 
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(
+      builder: (context) => InterviewSummaryScreen(),
+    ),
+  );
+}
+void _confirmEndSession() {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Text("End Interview?"),
+      content: Text("Are you sure you want to end this session?"),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text("Cancel"),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color(0xff0A898D),
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+            _goToSummary();
+          },
+          child: Text("Confirm"),
+        ),
+      ],
+    ),
+  );
+}
   Widget _buildSideAction({
     required IconData icon,
     required String label,
@@ -341,4 +364,3 @@ class CircleArcsPainter extends CustomPainter {
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => true;
 }
-
