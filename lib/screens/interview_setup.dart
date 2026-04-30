@@ -185,7 +185,7 @@ class _InterviewSetupState extends State<InterviewSetup> {
               child: Container(
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                 decoration: BoxDecoration(
-                  color: Color(0xFF0A898D),
+                  color: Color(0xFF0A898D).withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
