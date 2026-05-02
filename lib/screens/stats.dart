@@ -14,19 +14,19 @@ class _StatsState extends State<Stats> {
     return Scaffold(
       backgroundColor: Color(0xFFF8FAFF),
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(80),
+        preferredSize: Size.fromHeight(60),
         child: AppBar(
           backgroundColor: Color(0xFF0A898D),
           elevation: 0,
           leading: Padding(
-            padding: EdgeInsets.only(top: 10),
+            padding: EdgeInsets.only(top: 5),
             child: IconButton(
               icon: Icon(Icons.arrow_back, color: Colors.white, size: 35),
               onPressed: () => Navigator.pop(context),
             ),
           ),
           title: Padding(
-            padding: EdgeInsets.only(top: 20),
+            padding: EdgeInsets.only(top: 5),
             child: Text(
               "Analytics",
               style: TextStyle(
@@ -210,13 +210,13 @@ class _StatsState extends State<Stats> {
             sideTitles: SideTitles(
               showTitles: true,
               getTitlesWidget: (value, meta) {
-                const labels = ['Comm.', 'Confid.', 'Problem', 'Knowl.'];
+                const labels = ['Communication', 'Confidence', 'Problem Solving', 'Knowledge'];
                 if (value.toInt() >= 0 && value.toInt() < labels.length) {
                   return Padding(
                     padding: EdgeInsets.only(top: 8),
                     child: Text(
                       labels[value.toInt()],
-                      style: TextStyle(fontSize: 7, color: Colors.grey),
+                      style: TextStyle(fontSize: 3, color: Colors.grey),
                     ),
                   );
                 }
@@ -265,6 +265,13 @@ class _StatsState extends State<Stats> {
             child: RadarChart(
               RadarChartData(
                 radarShape: RadarShape.polygon,
+                tickBorderData:  BorderSide(
+                  color: Colors.transparent,
+                ), 
+                ticksTextStyle: TextStyle(
+                  color: Colors.transparent,
+                  fontSize: 0,
+                ),
                 dataSets: [
                   RadarDataSet(
                     fillColor: Color(0xFF0A898D).withValues(alpha: 0.6),
@@ -288,10 +295,6 @@ class _StatsState extends State<Stats> {
                   color: Color(0xFF0A898D).withValues(alpha: 0.2),
                   width: 1,
                 ),
-
-                tickCount: 1,
-                ticksTextStyle: TextStyle(color: Color(0xFF0A898D)),
-
                 titlePositionPercentageOffset: 0.15,
                 titleTextStyle: TextStyle(
                   fontSize: 10,
@@ -323,12 +326,15 @@ class _StatsState extends State<Stats> {
     return _cardWrapper(
       child: Row(
         children: [
-          Text(
-            "Weekly\nActivity",
-            style: TextStyle(
-              color: Color(0xFF0A898D),
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Text(
+              "Weekly\nActivity",
+              style: TextStyle(
+                color: Color(0xFF0A898D),
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
             ),
           ),
           Spacer(),

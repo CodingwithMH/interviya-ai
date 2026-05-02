@@ -8,31 +8,50 @@ class FeedbackScreen extends StatefulWidget {
 }
 
 class _FeedbackScreenState extends State<FeedbackScreen> {
+  String selectedCategory = "Bug Report";
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _messageController = TextEditingController();
+
+  final List<String> categories = [
+    "Bug Report",
+    "UI/UX Issue",
+    "Feature Suggestion",
+    "General Query",
+  ];
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _messageController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
     return Scaffold(
       backgroundColor: Color(0xFFF8FAFF),
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(80.0),
+        preferredSize: Size.fromHeight(60),
         child: AppBar(
           backgroundColor: Color(0xFF0A898D),
           elevation: 0,
-          centerTitle: false,
           leading: Padding(
-            padding: EdgeInsets.only(top: 10),
+            padding: EdgeInsets.only(top: 5),
             child: IconButton(
-              icon: Icon(Icons.arrow_back, color: Colors.white, size: 40),
+              icon: Icon(Icons.arrow_back, color: Colors.white, size: 35),
               onPressed: () => Navigator.pop(context),
             ),
           ),
           title: Padding(
-            padding: EdgeInsets.only(top: 20),
+            padding: EdgeInsets.only(top: 5),
             child: Text(
               "Feedback",
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 24,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
@@ -41,183 +60,209 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
           ),
         ),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(30),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(
+
+      body: SingleChildScrollView(
+        physics: BouncingScrollPhysics(),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: size.width * 0.09,
+            vertical: 20,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Image.asset(
                   "assets/images/User_Feedback.png",
-                  height: 200,
-                  width: 200,
+                  height: size.height * 0.18,
                   fit: BoxFit.contain,
                 ),
-              ],
-            ),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text(
-                  "Category",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xff1E293B),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(child: category("Bug Report", true)),
-                SizedBox(width: 12),
-                Expanded(child: category("UI/UX Issue", false)),
-              ],
-            ),
-            SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(child: category("Feature Suggestion", false)),
-                SizedBox(width: 12),
-                Expanded(child: category("General Query", false)),
-              ],
-            ),
-
-            SizedBox(height: 30),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text(
-                  " Your Email",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xff1E293B),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 10),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0xff1E293B).withValues(alpha: 0.1),
-                    blurRadius: 20,
-                    offset: Offset(0, 4),
-                  ),
-                ],
               ),
 
-              child: TextFormField(
-                decoration: InputDecoration(
-                  hintText: "hammadtheta12@gmail.com",
-                  hintStyle: TextStyle(color: Color(0xff94A3B8), fontSize: 14),
-                  prefixIcon: Icon(Icons.email, color: Color(0xff0A898D)),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(
-                    vertical: 10,
-                    horizontal: 20,
-                  ),
-                ),
-              ),
-            ),
+              SizedBox(height: 10),
+              _sectionTitle("Category"),
+              SizedBox(height: 12),
 
-            SizedBox(height: 30),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text(
-                  " Your Message",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xff1E293B),
-                  ),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 3,
                 ),
-              ],
-            ),
-            SizedBox(height: 10),
-            Container(
-              height: 100,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0xff1E293B).withValues(alpha: 0.1),
-                    blurRadius: 20,
-                    offset: Offset(0, 4),
-                  ),
-                ],
+                itemCount: categories.length,
+                itemBuilder: (context, index) {
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        selectedCategory = categories[index];
+                      });
+                    },
+                    child: categoryItem(
+                      categories[index],
+                      selectedCategory == categories[index],
+                    ),
+                  );
+                },
               ),
 
-              child: TextFormField(
-                maxLines: null,
-                expands: true,
-                decoration: InputDecoration(
-                  hintText: "Tell us what's on your mind... we're all ears!",
-                  hintStyle: TextStyle(color: Color(0xff94A3B8), fontSize: 14),
-                  border: InputBorder.none,
-                  contentPadding:
-                      EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                ),
+              SizedBox(height: 10),
+              _sectionTitle("Your Email"),
+              SizedBox(height: 10),
+              _buildTextField(
+                controller: _emailController,
+                hint: "example@mail.com",
+                icon: Icons.email,
               ),
-            ),
-             SizedBox(height: 30),
-            SizedBox(
-              width: double.infinity,
-              height: 55,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF0A898D),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+
+              SizedBox(height: 10),
+              _sectionTitle("Your Message"),
+              SizedBox(height: 10),
+              _buildMessageField(),
+
+              SizedBox(height: 20),
+
+              SizedBox(
+                width: double.infinity,
+                height: 55,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF0A898D),
+                    elevation: 5,
+                    shadowColor: Color(0xFF0A898D).withValues(alpha: 0.3),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                  ),
+                  onPressed: () {
+                    print("Category: $selectedCategory");
+                    print("Email: ${_emailController.text}");
+                    print("Message: ${_messageController.text}");
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Feedback Sent Successfully!")),
+                    );
+                  },
+                  child: Text(
+                    "Send Feedback",
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-                onPressed: () {},
-                child: Text(
-                  "Send Feedback",
-                  style: TextStyle(fontSize: 18, color: Colors.white),
-                ),
               ),
-            ),
-          ],
+              SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
     );
   }
-}
 
-Widget category(String title, bool isSelected) {
-  return Container(
-    padding: EdgeInsets.symmetric(vertical: 10),
-    decoration: BoxDecoration(
-      color: isSelected ? Color(0xFF0A898D) : Color(0xFFFFFFFF),
-      borderRadius: BorderRadius.circular(10),
-      boxShadow: [
-        BoxShadow(
-          color: Color(0xff1E293B).withValues(alpha: 0.1),
-          blurRadius: 20,
-          offset: Offset(0, 4),
-        ),
-      ],
-    ),
+  Widget _sectionTitle(String title) {
+    return Text(
+      title,
+      style: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+        color: Color(0xff1E293B),
+      ),
+    );
+  }
 
-    child: Center(
-      child: Text(
-        title,
-        style: TextStyle(
-          color: isSelected ? Colors.white : Color(0xFF0A898D),
-          fontSize: 16,
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0xff1E293B).withValues(alpha: 0.08),
+            blurRadius: 15,
+            offset: Offset(0, 5),
+          ),
+        ],
+      ),
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: TextStyle(color: Color(0xff94A3B8), fontSize: 14),
+          prefixIcon: Icon(icon, color: Color(0xff0A898D)),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
         ),
       ),
-    ),
-  );
+    );
+  }
+
+  Widget _buildMessageField() {
+    return Container(
+      height: 100,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0xff1E293B).withValues(alpha: 0.08),
+            blurRadius: 15,
+            offset: Offset(0, 5),
+          ),
+        ],
+      ),
+      child: TextFormField(
+        controller: _messageController,
+        maxLines: null,
+        expands: true,
+        textAlignVertical: TextAlignVertical.top,
+        decoration: InputDecoration(
+          hintText: "Tell us what's on your mind...",
+          hintStyle: TextStyle(color: Color(0xff94A3B8), fontSize: 14),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.all(15),
+        ),
+      ),
+    );
+  }
+
+  Widget categoryItem(String title, bool isSelected) {
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 200),
+      decoration: BoxDecoration(
+        color: isSelected ? Color(0xFF0A898D) : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isSelected
+              ? Colors.transparent
+              : Color(0xFF0A898D).withValues(alpha: 0.2),
+        ),
+        boxShadow: [
+          if (!isSelected)
+            BoxShadow(
+              color: Color(0xff1E293B).withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: Offset(0, 4),
+            ),
+        ],
+      ),
+      child: Center(
+        child: Text(
+          title,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Color(0xFF0A898D),
+            fontSize: 14,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ),
+    );
+  }
 }
