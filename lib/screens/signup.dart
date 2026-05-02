@@ -159,7 +159,6 @@ class _SignupState extends State<Signup> {
       ),
     );
   }
-
   Widget _buildInputField({
     required String hint,
     required IconData icon,
