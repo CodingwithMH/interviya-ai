@@ -34,6 +34,7 @@ class _StepsState extends State<Steps> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xffF8FAFC),
     body: Stack(
       children: [
         Positioned(child: Image.asset("assets/images/wave.png")),

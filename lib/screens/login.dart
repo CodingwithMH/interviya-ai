@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'package:app_projects/screens/signup.dart';
+import 'package:flutter_project/screens/signup.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});

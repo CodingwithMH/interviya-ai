@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:app_projects/screens/Dashboard.dart';
+import 'package:flutter_project/screens/dashboard.dart';
 import 'dart:math' as math;
 
 class ProfileSetup extends StatefulWidget {
