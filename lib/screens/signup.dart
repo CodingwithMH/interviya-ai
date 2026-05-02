@@ -39,12 +39,11 @@ class _SignupState extends State<Signup> {
 
                     Image.asset(
                       "assets/images/signup.png",
-                      height: isSmallScreen ? 180 : 230,
-                      width: isSmallScreen ? 180 : 230,
+                      height: isSmallScreen ? 130 : 210,
+                      width: screenSize.width * 0.7,
                       fit: BoxFit.contain,
                     ),
 
-                    SizedBox(height: 10),
 
                     Text(
                       "Create Account",
@@ -66,15 +65,15 @@ class _SignupState extends State<Signup> {
                       ),
                     ),
 
-                    SizedBox(height: 30),
+                    SizedBox(height: 20),
 
                     _buildInputField(hint: "Username", icon: Icons.person),
 
-                    SizedBox(height: 20),
+                    SizedBox(height: 10),
 
                     _buildInputField(hint: "Email Address", icon: Icons.email),
 
-                    SizedBox(height: 20),
+                    SizedBox(height: 10),
 
                     _buildInputField(
                       hint: "Password",
@@ -82,7 +81,7 @@ class _SignupState extends State<Signup> {
                       isPassword: true,
                     ),
 
-                    SizedBox(height: 25),
+                    SizedBox(height: 20),
 
                     SizedBox(
                       width: double.infinity,
@@ -121,7 +120,7 @@ class _SignupState extends State<Signup> {
 
                     _buildSocialButton(),
 
-                    SizedBox(height: 30),
+                    SizedBox(height: 20),
 
                     RichText(
                       text: TextSpan(
@@ -192,7 +191,7 @@ class _SignupState extends State<Signup> {
                 )
               : null,
           border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+          contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
         ),
       ),
     );
