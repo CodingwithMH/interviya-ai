@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_project/screens/dashboard.dart';
+import 'package:flutter_project/navigation_menu.dart';
 import 'dart:math' as math;
 
 class ProfileSetup extends StatefulWidget {
@@ -10,14 +10,33 @@ class ProfileSetup extends StatefulWidget {
 }
 
 class _ProfileSetupState extends State<ProfileSetup> {
-  String? selectedStatus;
   final PageController _pageController = PageController();
   int _currentStep = 0;
-  int? selectedExperience;
+
+  String fullName = "";
+  String targetRole = "";
+  String? selectedStatus;
+  String? selectedExperienceTitle;
+  String? selectedGoalTitle;
+  int? selectedExperienceIndex;
   int? selectedGoalIndex;
+
+  void _printSavedData() {
+    print("""
+      --- User Profile Data ---
+      Name: $fullName
+      Status: $selectedStatus
+      Role: $targetRole
+      Experience: $selectedExperienceTitle
+      Goal: $selectedGoalTitle
+    """);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final bool isSmallScreen = size.height < 700;
+
     return Scaffold(
       backgroundColor: Color(0xffF8FAFC),
       body: Stack(
@@ -28,33 +47,31 @@ class _ProfileSetupState extends State<ProfileSetup> {
               angle: math.pi,
               child: Image.asset(
                 "assets/images/wave.png",
-                width: 300,
+                width: size.width * 0.7,
                 fit: BoxFit.contain,
               ),
             ),
           ),
 
-          Padding(
-            padding: EdgeInsets.only(top: 100, left: 50, right: 50, bottom: 30),
+          SafeArea(
             child: Column(
               children: [
-                Center(
-                  child: Text(
-                    "Step ${_currentStep + 1}/3",
-                    style: TextStyle(
-                      color: Color(0xff0A898D),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                    ),
+                SizedBox(height: size.height * 0.06),
+                Text(
+                  "Step ${_currentStep + 1}/3",
+                  style: TextStyle(
+                    color: Color(0xff0A898D),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
                   ),
                 ),
-                SizedBox(height: 20),
+                SizedBox(height: 15),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(3, (index) {
-                    return Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 4),
-                      child: _buildStepBar(isActive: index <= _currentStep),
+                    return _buildStepBar(
+                      isActive: index <= _currentStep,
+                      width: size.width * 0.2,
                     );
                   }),
                 ),
@@ -63,108 +80,51 @@ class _ProfileSetupState extends State<ProfileSetup> {
                   child: PageView(
                     controller: _pageController,
                     physics: NeverScrollableScrollPhysics(),
-                    onPageChanged: (index) {
-                      setState(() {
-                        _currentStep = index;
-                      });
-                    },
+                    onPageChanged: (index) =>
+                        setState(() => _currentStep = index),
                     children: [
-                      _buildStep1Content(),
-
-                      _buildStep2Content(),
-
-                      _buildStep3Content(),
+                      _buildStep1Content(size, isSmallScreen),
+                      _buildStep2Content(size),
+                      _buildStep3Content(size),
                     ],
                   ),
                 ),
-              ],
-            ),
-          ),
 
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: EdgeInsets.only(bottom: 120),
-              child: SizedBox(
-                width: 220,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (_currentStep < 2) {
-                      _pageController.nextPage(
-                        duration: Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    } else {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => Dashboard()),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xff0A898D),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                  child: Text(
-                    _currentStep == 2 ? "Explore Dashboard" : "Continue",
-                    style: TextStyle(fontSize: 18, color: Colors.white),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStep1Content() {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          SizedBox(height: 30),
-          Text(
-            "Setup Your Profile",
-            style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 45),
-
-          Center(
-            child: Stack(
-              children: [
-                Container(
-                  padding: EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Color(0xff0A898D), width: 4),
-                  ),
-                  child: CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Colors.transparent,
-                    child: Icon(
-                      Icons.person,
-                      size: 60,
-                      color: Color(0xff0A898D),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: Transform.translate(
-                      offset: Offset(0, 10),
-                      child: CircleAvatar(
-                        radius: 15,
+                Padding(
+                  padding: EdgeInsets.only(bottom: 100),
+                  child: SizedBox(
+                    width: size.width * 0.6,
+                    height: 55,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (_currentStep < 2) {
+                          _pageController.nextPage(
+                            duration: Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        } else {
+                          _printSavedData();
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MainWrapper(),
+                            ),
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xff0A898D),
-                        child: Icon(
-                          Icons.camera_alt,
-                          size: 16,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        _currentStep == 2 ? "Explore Dashboard" : "Continue",
+                        style: TextStyle(
+                          fontSize: 18,
                           color: Colors.white,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
@@ -173,38 +133,95 @@ class _ProfileSetupState extends State<ProfileSetup> {
               ],
             ),
           ),
-
-          SizedBox(height: 55),
-
-          _buildTextField("Full Name", Icons.person),
-          SizedBox(height: 20),
-          _buildDropdown(),
-          SizedBox(height: 20),
-          _buildTextField("Target Role", Icons.track_changes),
-
-          SizedBox(height: 100),
         ],
       ),
     );
   }
 
-  Widget _buildStep2Content() {
+  Widget _buildStep1Content(Size size, bool isSmallScreen) {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: 20),
+      padding: EdgeInsets.symmetric(horizontal: 50),
       child: Column(
         children: [
-          SizedBox(height: 30),
+          SizedBox(height: size.height * 0.05),
           Text(
-            "What is your\nexperience level?",
+            "Setup Your Profile",
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 28,
+              fontSize: 30,
               fontWeight: FontWeight.bold,
               color: Color(0xff1E293B),
             ),
           ),
-          SizedBox(height: 40),
+          SizedBox(height: 30),
 
+          Center(
+            child: Stack(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Color(0xff0A898D), width: 3),
+                  ),
+                  child: CircleAvatar(
+                    radius: 45,
+                    backgroundColor: Colors.transparent,
+                    child: Icon(
+                      Icons.person,
+                      size: 50,
+                      color: Color(0xff0A898D),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: CircleAvatar(
+                    radius: 15,
+                    backgroundColor: Color(0xff0A898D),
+                    child: Icon(
+                      Icons.camera_alt,
+                      size: 14,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 40),
+          _buildTextField("Full Name", Icons.person, (val) => fullName = val),
+          SizedBox(height: 15),
+          _buildDropdown(),
+          SizedBox(height: 15),
+          _buildTextField(
+            "Target Role",
+            Icons.track_changes,
+            (val) => targetRole = val,
+          ),
+          SizedBox(height: 50),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStep2Content(Size size) {
+    return SingleChildScrollView(
+      padding: EdgeInsets.symmetric(horizontal: 40),
+      child: Column(
+        children: [
+          SizedBox(height: size.height * 0.07),
+          Text(
+            "What is your\nexperience level?",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
+              color: Color(0xff1E293B),
+            ),
+          ),
+          SizedBox(height: 30),
           _buildExperienceCard(
             index: 0,
             icon: Icons.grass_rounded,
@@ -223,37 +240,34 @@ class _ProfileSetupState extends State<ProfileSetup> {
             title: "Senior / Expert",
             subtitle: "5+ years of experience",
           ),
-
-          SizedBox(height: 100),
         ],
       ),
     );
   }
 
-  Widget _buildStep3Content() {
+  Widget _buildStep3Content(Size size) {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: 20),
+      padding: EdgeInsets.symmetric(horizontal: 30),
       child: Column(
         children: [
-          SizedBox(height: 30),
+          SizedBox(height: size.height * 0.05),
           Text(
             "What’s your main\ngoal?",
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 28,
+              fontSize: 26,
               fontWeight: FontWeight.bold,
               color: Color(0xff1E293B),
             ),
           ),
-          SizedBox(height: 40),
-
+          SizedBox(height: 30),
           GridView.count(
             shrinkWrap: true,
             physics: NeverScrollableScrollPhysics(),
             crossAxisCount: 2,
-            crossAxisSpacing: 20,
+            crossAxisSpacing: 15,
             mainAxisSpacing: 20,
-            childAspectRatio: 0.9,
+            childAspectRatio: 1.1,
             children: [
               _buildGoalCard(
                 0,
@@ -277,25 +291,30 @@ class _ProfileSetupState extends State<ProfileSetup> {
               ),
             ],
           ),
-
-          SizedBox(height: 100),
+          SizedBox(height: 30),
         ],
       ),
     );
   }
 
-  Widget _buildStepBar({required bool isActive}) {
-    return Container(
+  Widget _buildStepBar({required bool isActive, required double width}) {
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 300),
+      margin: EdgeInsets.symmetric(horizontal: 4),
       height: 6,
-      width: 60,
+      width: width,
       decoration: BoxDecoration(
-        color: isActive ? Color(0xff0A898D) : Color(0xffE2E8F0),
+        color: isActive ? Color(0xff0A898D) : Color(0xffCBD5E1),
         borderRadius: BorderRadius.circular(10),
       ),
     );
   }
 
-  Widget _buildTextField(String hint, IconData icon) {
+  Widget _buildTextField(
+    String hint,
+    IconData icon,
+    Function(String) onChanged,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -309,12 +328,13 @@ class _ProfileSetupState extends State<ProfileSetup> {
         ],
       ),
       child: TextFormField(
+        onChanged: onChanged,
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: TextStyle(color: Color(0xff64748B)),
+          hintStyle: TextStyle(color: Color(0xff94A3B8), fontSize: 14),
           prefixIcon: Icon(icon, color: Color(0xff0A898D)),
           border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(vertical: 18),
+          contentPadding: EdgeInsets.symmetric(vertical: 14),
         ),
       ),
     );
@@ -322,6 +342,7 @@ class _ProfileSetupState extends State<ProfileSetup> {
 
   Widget _buildDropdown() {
     return Container(
+      padding: EdgeInsets.only(right: 10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -333,13 +354,17 @@ class _ProfileSetupState extends State<ProfileSetup> {
           ),
         ],
       ),
-      child: DropdownButtonFormField(
-        initialValue: selectedStatus,
-        hint: Text("Current Status"),
+      child: DropdownButtonFormField<String>(
+        value: selectedStatus,
+        hint: Text(
+          "Current Status",
+          style: TextStyle(color: Color(0xff94A3B8), fontSize: 14),
+        ),
+
         decoration: InputDecoration(
           prefixIcon: Icon(Icons.work, color: Color(0xff0A898D)),
           border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(vertical: 18),
+          contentPadding: EdgeInsets.symmetric(vertical: 14),
         ),
         items: [
           "Student",
@@ -351,97 +376,40 @@ class _ProfileSetupState extends State<ProfileSetup> {
     );
   }
 
-  Widget _buildGoalCard(int index, IconData icon, String title) {
-    bool isSelected = selectedGoalIndex == index;
-
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          selectedGoalIndex = index;
-        });
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(25),
-          border: Border.all(
-            color: isSelected ? Color(0xff0A898D) : Colors.transparent,
-            width: 2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Color(0xff1E293B).withValues(alpha: .06),
-              blurRadius: 15,
-              offset: Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 45, color: Color(0xff0A898D)),
-            SizedBox(height: 15),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Color(0xff0A898D),
-                height: 1.2,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildExperienceCard({
     required int index,
     required IconData icon,
     required String title,
     required String subtitle,
   }) {
-    bool isSelected = selectedExperience == index;
-
+    bool isSelected = selectedExperienceIndex == index;
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          selectedExperience = index;
-        });
-      },
+      onTap: () => setState(() {
+        selectedExperienceIndex = index;
+        selectedExperienceTitle = title;
+      }),
       child: Container(
         margin: EdgeInsets.only(bottom: 20),
         padding: EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-
           border: Border.all(
             color: isSelected ? Color(0xff0A898D) : Colors.transparent,
             width: 2,
           ),
           boxShadow: [
             BoxShadow(
-              color: Color(0xff1E293B).withValues(alpha: 0.08),
-              blurRadius: 15,
-              offset: Offset(0, 5),
+              color: Color(0xff1E293B).withValues(alpha: 0.1),
+              blurRadius: 20,
+              offset: Offset(0, 4),
             ),
           ],
         ),
         child: Row(
           children: [
-            Container(
-              padding: EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Color(0xff0A898D).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: Color(0xff0A898D), size: 30),
-            ),
-            SizedBox(width: 20),
-
+            Icon(icon, color: Color(0xff0A898D), size: 30),
+            SizedBox(width: 15),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -454,12 +422,54 @@ class _ProfileSetupState extends State<ProfileSetup> {
                       color: Color(0xff0A898D),
                     ),
                   ),
-                  SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: TextStyle(color: Color(0xff64748B), fontSize: 13),
+                    style: TextStyle(color: Color(0xff94A3B8), fontSize: 13),
                   ),
                 ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGoalCard(int index, IconData icon, String title) {
+    bool isSelected = selectedGoalIndex == index;
+    return GestureDetector(
+      onTap: () => setState(() {
+        selectedGoalIndex = index;
+        selectedGoalTitle = title.replaceAll('\n', ' ');
+      }),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? Color(0xff0A898D) : Colors.transparent,
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Color(0xff1E293B).withValues(alpha: 0.1),
+              blurRadius: 20,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 40, color: Color(0xff0A898D)),
+            SizedBox(height: 10),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: Color(0xff0A898D),
               ),
             ),
           ],
