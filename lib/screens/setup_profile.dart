@@ -56,7 +56,7 @@ class _ProfileSetupState extends State<ProfileSetup> {
           SafeArea(
             child: Column(
               children: [
-                SizedBox(height: size.height * 0.1),
+                SizedBox(height: size.height * 0.06),
                 Text(
                   "Step ${_currentStep + 1}/3",
                   style: TextStyle(
@@ -91,7 +91,7 @@ class _ProfileSetupState extends State<ProfileSetup> {
                 ),
 
                 Padding(
-                  padding: EdgeInsets.only(bottom: 180),
+                  padding: EdgeInsets.only(bottom: 100),
                   child: SizedBox(
                     width: size.width * 0.6,
                     height: 55,
@@ -334,7 +334,7 @@ class _ProfileSetupState extends State<ProfileSetup> {
           hintStyle: TextStyle(color: Color(0xff94A3B8), fontSize: 14),
           prefixIcon: Icon(icon, color: Color(0xff0A898D)),
           border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(vertical: 18),
+          contentPadding: EdgeInsets.symmetric(vertical: 14),
         ),
       ),
     );
@@ -364,6 +364,7 @@ class _ProfileSetupState extends State<ProfileSetup> {
         decoration: InputDecoration(
           prefixIcon: Icon(Icons.work, color: Color(0xff0A898D)),
           border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(vertical: 14),
         ),
         items: [
           "Student",
