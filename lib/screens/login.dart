@@ -40,12 +40,12 @@ class _LoginState extends State<Login> {
 
                     Image.asset(
                       "assets/images/login.png",
-                      height: isSmallScreen ? 200 : 280,
+                      height: isSmallScreen ? 170 : 250,
                       width: screenSize.width * 0.7,
                       fit: BoxFit.contain,
                     ),
 
-                    SizedBox(height: 20),
+                  
 
                     Text(
                       "Welcome Back!",
@@ -67,11 +67,11 @@ class _LoginState extends State<Login> {
                       ),
                     ),
 
-                    SizedBox(height: 30),
+                    SizedBox(height: 20),
 
                     _buildInputField(hint: "Email Address", icon: Icons.email),
 
-                    SizedBox(height: 20),
+                    SizedBox(height: 10),
 
                     _buildInputField(
                       hint: "Password",
@@ -112,7 +112,7 @@ class _LoginState extends State<Login> {
                     ),
 
                     Padding(
-                      padding: EdgeInsets.symmetric(vertical: 20),
+                      padding: EdgeInsets.symmetric(vertical: 10),
                       child: Text(
                         "OR",
                         style: TextStyle(
@@ -166,7 +166,7 @@ class _LoginState extends State<Login> {
                       ),
                     ),
 
-                    SizedBox(height: 35),
+                    SizedBox(height: 20),
 
                     RichText(
                       text: TextSpan(
@@ -237,7 +237,7 @@ class _LoginState extends State<Login> {
                 )
               : null,
           border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+          contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
         ),
       ),
     );
