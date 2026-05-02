@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class History extends StatefulWidget {
-     const History({super.key});
+  const History({super.key});
 
   @override
   State<History> createState() => _HistoryState();
@@ -9,11 +9,10 @@ class History extends StatefulWidget {
 
 class _HistoryState extends State<History> {
   bool isCompleted = true;
-  bool showAll = false; 
+  bool showAll = false;
   final ScrollController _scrollController = ScrollController();
 
   final List<Map<String, dynamic>> allTasks = [
-  
     {
       "role": "Software Developer",
       "date": "22 April 2026",
@@ -57,7 +56,6 @@ class _HistoryState extends State<History> {
       "period": "This Week",
     },
 
-    
     {
       "role": "UI/UX Designer",
       "date": "12 March 2026",
@@ -97,19 +95,17 @@ class _HistoryState extends State<History> {
 
   void _handleScroll() {
     if (showAll) {
-      
-      Future.delayed(   Duration(milliseconds: 200), () {
+      Future.delayed(Duration(milliseconds: 200), () {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
-          duration:    Duration(milliseconds: 500),
+          duration: Duration(milliseconds: 500),
           curve: Curves.easeOut,
         );
       });
     } else {
-      
       _scrollController.animateTo(
         0,
-        duration:    Duration(milliseconds: 500),
+        duration: Duration(milliseconds: 500),
         curve: Curves.easeIn,
       );
     }
@@ -128,7 +124,6 @@ class _HistoryState extends State<History> {
         .where((t) => t['period'] == "Last Month")
         .toList();
 
-   
     final thisWeekDisplay = showAll
         ? thisWeekAll
         : thisWeekAll.take(2).toList();
@@ -137,49 +132,45 @@ class _HistoryState extends State<History> {
         : lastMonthAll.take(2).toList();
 
     return Scaffold(
-      backgroundColor:    Color(0xFFF8FAFF),
+      backgroundColor: Color(0xFFF8FAFF),
       appBar: PreferredSize(
-        preferredSize:    Size.fromHeight(80),
+        preferredSize: Size.fromHeight(60),
         child: AppBar(
-          backgroundColor:    Color(0xFF0A898D),
+          backgroundColor: Color(0xFF0A898D),
           elevation: 0,
           leading: Padding(
-            padding:    EdgeInsets.only(top: 10),
+            padding: EdgeInsets.only(top:5),
             child: IconButton(
-              icon:    Icon(Icons.arrow_back, color: Colors.white, size: 35),
+              icon: Icon(Icons.arrow_back, color: Colors.white, size: 35),
               onPressed: () => Navigator.pop(context),
             ),
           ),
-          title:    Padding(
-            padding: EdgeInsets.only(top: 20),
+          title: Padding(
+            padding: EdgeInsets.only(top: 5),
             child: Text(
               "History",
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 24,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
-          shape:    RoundedRectangleBorder(
+          shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(bottom: Radius.circular(25)),
           ),
         ),
       ),
-      
+
       body: ScrollConfiguration(
         behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
         child: SingleChildScrollView(
           controller: _scrollController,
           child: Padding(
-            padding:    EdgeInsets.symmetric(
-              horizontal: 20.0,
-              vertical: 25.0,
-            ),
+            padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 25.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                
                 Container(
                   width: double.infinity,
                   height: 55,
@@ -188,9 +179,9 @@ class _HistoryState extends State<History> {
                     borderRadius: BorderRadius.circular(15),
                     boxShadow: [
                       BoxShadow(
-                        color:    Color(0xff1E293B).withValues(alpha: 0.1),
+                        color: Color(0xff1E293B).withValues(alpha: 0.1),
                         blurRadius: 20,
-                        offset:    Offset(0, 4),
+                        offset: Offset(0, 4),
                       ),
                     ],
                   ),
@@ -205,40 +196,37 @@ class _HistoryState extends State<History> {
                     ],
                   ),
                 ),
-                   SizedBox(height: 30),
+                SizedBox(height: 30),
 
-                
                 if (thisWeekAll.isNotEmpty) ...[
                   _buildSectionTitle("This Week"),
                   ...thisWeekDisplay.map((task) => _buildHistoryCard(task)),
-                     SizedBox(height: 15),
+                  SizedBox(height: 15),
                 ],
 
-              
                 if (lastMonthAll.isNotEmpty) ...[
                   _buildSectionTitle("Last Month"),
                   ...lastMonthDisplay.map((task) => _buildHistoryCard(task)),
-                     SizedBox(height: 15),
+                  SizedBox(height: 15),
                 ],
 
                 if (thisWeekAll.isEmpty && lastMonthAll.isEmpty)
-                     Center(
+                  Center(
                     child: Padding(
                       padding: EdgeInsets.only(top: 50),
                       child: Text("No tasks to display."),
                     ),
                   ),
 
-                   SizedBox(height: 10),
+                SizedBox(height: 10),
 
-               
                 if (tabFilteredList.length > 2)
                   SizedBox(
                     width: double.infinity,
                     height: 55,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor:    Color(0xFF0A898D),
+                        backgroundColor: Color(0xFF0A898D),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -251,7 +239,7 @@ class _HistoryState extends State<History> {
                       },
                       child: Text(
                         showAll ? "View Less History" : "View All History",
-                        style:    TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontSize: 17,
                           fontWeight: FontWeight.w600,
@@ -259,7 +247,7 @@ class _HistoryState extends State<History> {
                       ),
                     ),
                   ),
-                   SizedBox(height: 30),
+                SizedBox(height: 30),
               ],
             ),
           ),
@@ -268,26 +256,25 @@ class _HistoryState extends State<History> {
     );
   }
 
-
   Widget _buildTabButton(String title, bool active) {
     return GestureDetector(
       onTap: () {
         setState(() {
           isCompleted = (title == "Completed");
-          showAll = false; 
+          showAll = false;
         });
       },
       child: Container(
-        margin:    EdgeInsets.all(6),
+        margin: EdgeInsets.all(6),
         decoration: BoxDecoration(
-          color: active ?    Color(0xFF0A898D) : Colors.transparent,
+          color: active ? Color(0xFF0A898D) : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Center(
           child: Text(
             title,
             style: TextStyle(
-              color: active ? Colors.white :    Color(0xFF0A898D),
+              color: active ? Colors.white : Color(0xFF0A898D),
               fontWeight: FontWeight.bold,
               fontSize: 15,
             ),
@@ -299,10 +286,10 @@ class _HistoryState extends State<History> {
 
   Widget _buildSectionTitle(String title) {
     return Padding(
-      padding:    EdgeInsets.only(bottom: 15),
+      padding: EdgeInsets.only(bottom: 15),
       child: Text(
         title,
-        style:    TextStyle(
+        style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.bold,
           color: Color(0xFF1E293B),
@@ -313,49 +300,46 @@ class _HistoryState extends State<History> {
 
   Widget _buildHistoryCard(Map<String, dynamic> task) {
     return Container(
-      margin:    EdgeInsets.only(bottom: 15),
-      padding:    EdgeInsets.all(15),
+      margin: EdgeInsets.only(bottom: 15),
+      padding: EdgeInsets.all(15),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color:    Color(0xff1E293B).withValues(alpha: 0.08),
+            color: Color(0xff1E293B).withValues(alpha: 0.08),
             blurRadius: 15,
-            offset:    Offset(0, 5),
+            offset: Offset(0, 5),
           ),
         ],
       ),
       child: Row(
         children: [
           Container(
-            padding:    EdgeInsets.all(12),
+            padding: EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color:    Color(0xFF0A898D),
+              color: Color(0xFF0A898D),
               borderRadius: BorderRadius.circular(15),
             ),
             child: Icon(task['icon'], color: Colors.white, size: 28),
           ),
-             SizedBox(width: 15),
+          SizedBox(width: 15),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   task['role'],
-                  style:    TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                     color: Color(0xFF1E293B),
                   ),
                 ),
-                   SizedBox(height: 5),
+                SizedBox(height: 5),
                 Text(
                   task['date'],
-                  style:    TextStyle(
-                    color: Color(0xff94A3B8),
-                    fontSize: 13,
-                  ),
+                  style: TextStyle(color: Color(0xff94A3B8), fontSize: 13),
                 ),
               ],
             ),
@@ -365,13 +349,13 @@ class _HistoryState extends State<History> {
             height: 48,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color:    Color(0xFF0A898D),
+              color: Color(0xFF0A898D),
               border: Border.all(color: Colors.white, width: 2),
             ),
             child: Center(
               child: Text(
                 "${task['score']}%",
-                style:    TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
