@@ -13,19 +13,19 @@ class _ProfileState extends State<Profile> {
     return Scaffold(
       backgroundColor: Color(0xFFF8FAFF),
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(80),
+        preferredSize: Size.fromHeight(60),
         child: AppBar(
           backgroundColor: Color(0xFF0A898D),
           elevation: 0,
           leading: Padding(
-            padding: EdgeInsets.only(top: 10),
+            padding: EdgeInsets.only(top:5),
             child: IconButton(
               icon: Icon(Icons.arrow_back, color: Colors.white, size: 35),
               onPressed: () => Navigator.pop(context),
             ),
           ),
           title: Padding(
-            padding: EdgeInsets.only(top: 20),
+            padding: EdgeInsets.only(top: 5),
             child: Text(
               "Profile",
               style: TextStyle(
