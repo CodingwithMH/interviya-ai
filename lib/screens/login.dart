@@ -79,7 +79,7 @@ class _LoginState extends State<Login> {
                       isPassword: true,
                     ),
 
-                    SizedBox(height: 25),
+                    SizedBox(height: 20),
 
                     SizedBox(
                       width: double.infinity,
