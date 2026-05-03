@@ -1,3 +1,4 @@
+import 'package:flutter_project/screens/sign_up.dart';
 import 'package:flutter_project/screens/signup.dart';
 import 'package:flutter/material.dart';
 
@@ -39,7 +40,7 @@ class _StepsState extends State<Steps> {
         children: [
           Positioned(child: Image.asset("assets/images/wave.png")),
           Padding(
-            padding: EdgeInsets.only(top: 100, left: 30, right: 30, bottom: 30),
+            padding: EdgeInsets.only(top: 100, left: 40, right: 40),
             child: Column(
               children: [
                 Row(
@@ -52,7 +53,7 @@ class _StepsState extends State<Steps> {
                         Navigator.pushReplacement(
                           
                           context,
-                          MaterialPageRoute(builder: (_) => Signup()),
+                          MaterialPageRoute(builder: (_) => SignUp()),
                         );
                       },
                       style: TextButton.styleFrom(
