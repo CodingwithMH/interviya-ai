@@ -1,5 +1,4 @@
 import 'package:flutter_project/screens/sign_up.dart';
-import 'package:flutter_project/screens/signup.dart';
 import 'package:flutter/material.dart';
 
 class Steps extends StatefulWidget {
@@ -121,7 +120,7 @@ class _StepsState extends State<Steps> {
                             if (!mounted) return;
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => Signup()),
+                              MaterialPageRoute(builder: (_) => SignUp()),
                             );
                           }
                         },

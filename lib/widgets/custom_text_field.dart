@@ -27,8 +27,8 @@ class CustomTextField extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: Colors.black12,
-            blurRadius: 8,
-            offset: Offset(0, 4),
+            blurRadius: 6,
+            offset: Offset(0, 2),
           ),
         ],
       ),
@@ -48,7 +48,7 @@ class CustomTextField extends StatelessWidget {
             color: Color(0xff0A898D),
             size: 28,
           ),
-          suffixIcon: suffixIcon, // 👈 optional
+          suffixIcon: suffixIcon,
         ),
       ),
     );

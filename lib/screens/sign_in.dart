@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_project/screens/sign_in.dart';
+import 'package:flutter_project/screens/signup.dart';
 import 'package:flutter_project/widgets/custom_text_field.dart';
 
-class SignUp extends StatefulWidget {
-  const SignUp({super.key});
+class SignIn extends StatefulWidget {
+  const SignIn({super.key});
 
   @override
-  State<SignUp> createState() => _SignUpState();
+  State<SignIn> createState() => _SignInState();
 }
 
-class _SignUpState extends State<SignUp> {
+class _SignInState extends State<SignIn> {
   TextEditingController username= TextEditingController();
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
@@ -36,9 +36,9 @@ class _SignUpState extends State<SignUp> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Image.asset("assets/images/signup.png", height: screenHeight*0.20,),
+                Image.asset("assets/images/login.png", height: screenHeight*0.20,),
                 Text(
-                  "Create Account",
+                  "Welcome Back!",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
@@ -47,17 +47,11 @@ class _SignUpState extends State<SignUp> {
                   ),
                 ),
                 Text(
-                  "Join us to ace your next interview",
+                  "Login To Continue Your Prep",
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Color(0xff64748B)),
                 ),
                 SizedBox(height: 25),
-                CustomTextField(
-                  hintText: "Username",
-                  icon: Icons.person,
-                  controller: username,
-                ),
-                SizedBox(height: 10),
                 CustomTextField(
                   hintText: "Email Address",
                   icon: Icons.mail,
@@ -110,10 +104,10 @@ class _SignUpState extends State<SignUp> {
                       Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => SignIn(),
+                                    builder: (context) => Signup(),
                                   ),
                                 );
-                    }, style: TextButton.styleFrom(foregroundColor: Color(0xff0A898D)), child: Text("Login"),)
+                    }, style: TextButton.styleFrom(foregroundColor: Color(0xff0A898D)), child: Text("Sign Up"),)
                   ],
                 )
               ],
