@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_project/screens/interview_setup.dart';
-import 'package:flutter_project/navigation_menu.dart';
+import 'package:flutter_project/widgets/navigation_menu.dart';
 
 class InterviewSummaryScreen extends StatefulWidget {
   const InterviewSummaryScreen({super.key});

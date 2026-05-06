@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_project/navigation_menu.dart';
+import 'package:flutter_project/widgets/navigation_menu.dart';
 import 'dart:math' as math;
 
 class ProfileSetup extends StatefulWidget {

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_project/screens/signup.dart';
+import 'package:flutter_project/screens/sign_up.dart';
 import 'package:flutter_project/widgets/custom_text_field.dart';
 
 class SignIn extends StatefulWidget {
@@ -77,7 +77,7 @@ class _SignInState extends State<SignIn> {
                     backgroundColor: Color(0xff0A898D),
                     foregroundColor: Colors.white,
                   ),
-                  child: Text("Sign Up", style: TextStyle(fontSize: 22)),
+                  child: Text("Sign In", style: TextStyle(fontSize: 22)),
                 ),
                 SizedBox(height: 15),
                 Text(
@@ -104,7 +104,7 @@ class _SignInState extends State<SignIn> {
                       Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => Signup(),
+                                    builder: (context) => SignUp(),
                                   ),
                                 );
                     }, style: TextButton.styleFrom(foregroundColor: Color(0xff0A898D)), child: Text("Sign Up"),)
