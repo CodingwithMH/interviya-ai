@@ -39,7 +39,7 @@ class _StepsState extends State<Steps> {
         children: [
           Positioned(child: Image.asset("assets/images/wave.png")),
           Padding(
-            padding: EdgeInsets.only(top: 100, left: 40, right: 40),
+            padding: EdgeInsets.only(top: 100, left: 40, right: 40, bottom: 40),
             child: Column(
               children: [
                 Row(
