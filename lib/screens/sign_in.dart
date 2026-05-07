@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_project/data/services/auth_service.dart';
+import 'package:flutter_project/screens/setup_profile.dart';
 import 'package:flutter_project/screens/sign_up.dart';
 import 'package:flutter_project/widgets/custom_text_field.dart';
 
@@ -10,9 +12,43 @@ class SignIn extends StatefulWidget {
 }
 
 class _SignInState extends State<SignIn> {
+  bool isLoading = false;
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
   final _formkey = GlobalKey<FormState>();
+  void handleSignIn () async {
+    if (!_formkey.currentState!.validate()) return;
+
+    setState(() => isLoading = true);
+
+    String? result = await AuthService().signInUser(
+      email: email.text,
+      password: password.text,
+    );
+
+    setState(() => isLoading = false);
+
+    if (result=="success") {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Logged In Successfully!"),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => ProfileSetup()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result ?? "An error occurred"),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+
+  }
   @override
   void dispose() {
     email.dispose();
@@ -97,21 +133,19 @@ class _SignInState extends State<SignIn> {
                     ),
                     SizedBox(height: 20),
                     ElevatedButton(
-                      onPressed: () {
-                        if (_formkey.currentState!.validate()) {
-                          // If validation passes, proceed with login logic
-                          print("Form is valid! Email: ${email.text}");
-                        } else {
-                          print("Form is invalid");
-                        }
-                      },
+                      onPressed: isLoading ? null : handleSignIn,
                       style: ElevatedButton.styleFrom(
                         elevation: 8,
                         padding: EdgeInsets.symmetric(vertical: 16),
                         backgroundColor: Color(0xff0A898D),
                         foregroundColor: Colors.white,
                       ),
-                      child: Text("Sign In", style: TextStyle(fontSize: 22)),
+                      child: isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                              "Sign In",
+                              style: TextStyle(fontSize: 22),
+                            ),
                     ),
                     SizedBox(height: 15),
                     Text(
