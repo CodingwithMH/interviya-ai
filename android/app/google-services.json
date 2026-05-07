@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1017638934197",
+    "project_id": "interviya-8f353",
+    "storage_bucket": "interviya-8f353.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1017638934197:android:61a27fd2f9df9715f110fc",
+        "android_client_info": {
+          "package_name": "com.interviya.ai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB1C-W15tT1YwgwIkxa2deNgxWMojlt6h0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

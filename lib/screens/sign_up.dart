@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_project/data/services/auth_service.dart';
 import 'package:flutter_project/screens/sign_in.dart';
 import 'package:flutter_project/widgets/custom_text_field.dart';
 
@@ -10,10 +11,46 @@ class SignUp extends StatefulWidget {
 }
 
 class _SignUpState extends State<SignUp> {
+  bool isLoading = false;
   TextEditingController username = TextEditingController();
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
   final _formkey = GlobalKey<FormState>();
+
+  void handleSignUp() async {
+    if (!_formkey.currentState!.validate()) return;
+
+    setState(() => isLoading = true);
+
+    String? result = await AuthService().signUpUser(
+      email: email.text,
+      password: password.text,
+      username: username.text,
+    );
+
+    setState(() => isLoading = false);
+
+    if (result == "success") {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Account Created!"),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => SignIn()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result ?? "An error occurred"),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   @override
   void dispose() {
     username.dispose();
@@ -113,28 +150,19 @@ class _SignUpState extends State<SignUp> {
                     ),
                     SizedBox(height: 20),
                     ElevatedButton(
-                      onPressed: () {
-                        if (_formkey.currentState!.validate()) {
-                          print("Form is valid! Email: ${email.text}");
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                "Account created for ${username.text}!",
-                              ),
-                              backgroundColor: Color(0xff0A898D),
-                            ),
-                          );
-                        } else {
-                          print("Form is invalid");
-                        }
-                      },
+                      onPressed: isLoading ? null : handleSignUp,
                       style: ElevatedButton.styleFrom(
                         elevation: 8,
                         padding: EdgeInsets.symmetric(vertical: 16),
                         backgroundColor: Color(0xff0A898D),
                         foregroundColor: Colors.white,
                       ),
-                      child: Text("Sign Up", style: TextStyle(fontSize: 22)),
+                      child: isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                              "Sign Up",
+                              style: TextStyle(fontSize: 22),
+                            ),
                     ),
                     SizedBox(height: 15),
                     Text(
@@ -165,7 +193,7 @@ class _SignUpState extends State<SignUp> {
                         Text("Already have an account? "),
                         GestureDetector(
                           onTap: () {
-                            Navigator.push(
+                            Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(builder: (context) => SignIn()),
                             );

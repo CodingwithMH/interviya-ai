@@ -45,20 +45,14 @@ class _StepsState extends State<Steps> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    TextButton(
-                      onPressed: () {
-                        if (isNavigating) return;
-                        isNavigating = true;
-                        Navigator.pushReplacement(
-                          
-                          context,
-                          MaterialPageRoute(builder: (_) => SignUp()),
-                        );
-                      },
-                      style: TextButton.styleFrom(
-                        foregroundColor: Color(0xff0A898D),
-                      ),
-                      child: Text(
+                    GestureDetector(
+                          onTap: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => SignUp()),
+                            );
+                          },
+                          child: Text(
                         "skip",
                         style: TextStyle(
                           fontSize: 20,
@@ -69,7 +63,7 @@ class _StepsState extends State<Steps> {
                           color: Color(0xff0A898D),
                         ),
                       ),
-                    ),
+                        ),
                   ],
                 ),
                 Expanded(child: Container()),
