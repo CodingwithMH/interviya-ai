@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_project/components/Experience_setup.dart';
+import 'package:flutter_project/components/goal_setup.dart';
 import 'package:flutter_project/components/profile_setup.dart';
 import "dart:math" as math;
 
@@ -22,11 +23,14 @@ class _SetupState extends State<Setup> {
     });
   }
 
-  late final List<Widget> stepComponents = [
-    ProfileSetup(onContinue: handleSteps),
-    ExperienceSetup(onContinue: handleSteps,),
-    ProfileSetup(onContinue: handleSteps),
-  ];
+  Widget getStepComponent() {
+  switch (currentIndex) {
+    case 0: return ProfileSetup(onContinue: handleSteps);
+    case 1: return ExperienceSetup(onContinue: handleSteps);
+    case 2: return GoalSetup(onContinue: handleSteps);
+    default: return Container();
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +81,7 @@ class _SetupState extends State<Setup> {
                       ),
                     ),
                     Spacer(),
-                    stepComponents[currentIndex],
+                    Center(child: getStepComponent()),
                     Spacer(),
                   ],
                 ),
