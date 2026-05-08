@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_project/components/Experience_setup.dart';
 import 'package:flutter_project/components/profile_setup.dart';
 import "dart:math" as math;
 
@@ -20,6 +21,12 @@ class _SetupState extends State<Setup> {
       currentIndex = (currentIndex + 1) % 3;
     });
   }
+
+  late final List<Widget> stepComponents = [
+    ProfileSetup(onContinue: handleSteps),
+    ExperienceSetup(onContinue: handleSteps,),
+    ProfileSetup(onContinue: handleSteps),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +77,7 @@ class _SetupState extends State<Setup> {
                       ),
                     ),
                     Spacer(),
-                    ProfileSetup(onContinue: handleSteps),
+                    stepComponents[currentIndex],
                     Spacer(),
                   ],
                 ),
@@ -86,7 +93,7 @@ class _SetupState extends State<Setup> {
     return Expanded(
       child: Container(
         margin: EdgeInsets.symmetric(horizontal: 4),
-        height: index == currentIndex ? 6 : 4,
+        height: index == currentIndex ? 7 : 4,
         decoration: BoxDecoration(
           color: index <= currentIndex
               ? const Color(0xff0A898D)
