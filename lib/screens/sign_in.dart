@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_project/data/services/auth_service.dart';
-import 'package:flutter_project/screens/setup_profile.dart';
+import 'package:flutter_project/screens/profile_setup.dart';
 import 'package:flutter_project/screens/sign_up.dart';
 import 'package:flutter_project/widgets/custom_text_field.dart';
 
@@ -174,7 +174,7 @@ class _SignInState extends State<SignIn> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text("Don't have an account?"),
-                        GestureDetector(
+                        InkWell(
                           onTap: () {
                             Navigator.push(
                               context,

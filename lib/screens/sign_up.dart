@@ -191,7 +191,7 @@ class _SignUpState extends State<SignUp> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text("Already have an account? "),
-                        GestureDetector(
+                        InkWell(
                           onTap: () {
                             Navigator.pushReplacement(
                               context,

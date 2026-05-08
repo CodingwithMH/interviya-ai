@@ -45,7 +45,7 @@ class _StepsState extends State<Steps> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    GestureDetector(
+                    InkWell(
                           onTap: () {
                             Navigator.pushReplacement(
                               context,
