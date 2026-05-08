@@ -90,7 +90,7 @@ class _GoalSetupState extends State<GoalSetup> {
             ),
           ),
           child: const Text(
-            "Continue",
+            "Explore Dashboard",
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
         ),
