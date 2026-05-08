@@ -12,6 +12,7 @@ class SignUp extends StatefulWidget {
 
 class _SignUpState extends State<SignUp> {
   bool isLoading = false;
+  bool obsecure = true;
   TextEditingController username = TextEditingController();
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
@@ -136,11 +137,16 @@ class _SignUpState extends State<SignUp> {
                       hintText: "Password",
                       icon: Icons.lock,
                       controller: password,
-                      suffixIcon: Icon(
-                        Icons.remove_red_eye_outlined,
+                      suffixIcon: GestureDetector(
+                        onTap: (){setState(() {
+                          obsecure = !obsecure;
+                        });},
+                      child: Icon(
+                        obsecure ? Icons.remove_red_eye_outlined : Icons.visibility_off_outlined,
                         color: Color(0xff0A898D),
                       ),
-                      obscureText: true,
+                      ), 
+                      obscureText: obsecure,
                       validator: (value) {
                         if (value == null || value.length < 6) {
                           return "Password must be at least 6 characters";

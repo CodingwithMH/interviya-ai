@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_project/data/services/auth_service.dart';
-import 'package:flutter_project/screens/profile_setup.dart';
+import 'package:flutter_project/screens/setup.dart';
 import 'package:flutter_project/screens/sign_up.dart';
 import 'package:flutter_project/widgets/custom_text_field.dart';
 
@@ -13,6 +13,7 @@ class SignIn extends StatefulWidget {
 
 class _SignInState extends State<SignIn> {
   bool isLoading = false;
+  bool obsecure = true;
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
   final _formkey = GlobalKey<FormState>();
@@ -37,7 +38,7 @@ class _SignInState extends State<SignIn> {
       );
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => ProfileSetup()),
+        MaterialPageRoute(builder: (context) => Setup()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -119,11 +120,16 @@ class _SignInState extends State<SignIn> {
                       hintText: "Password",
                       icon: Icons.lock,
                       controller: password,
-                      suffixIcon: Icon(
-                        Icons.remove_red_eye_outlined,
+                      suffixIcon: GestureDetector(
+                        onTap: (){setState(() {
+                          obsecure = !obsecure;
+                        });},
+                      child: Icon(
+                        obsecure ? Icons.remove_red_eye_outlined : Icons.visibility_off_outlined,
                         color: Color(0xff0A898D),
                       ),
-                      obscureText: true,
+                      ), 
+                      obscureText: obsecure,
                       validator: (value) {
                         if (value == null || value.length < 6) {
                           return "Password must be at least 6 characters";

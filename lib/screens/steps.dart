@@ -84,7 +84,7 @@ class _StepsState extends State<Steps> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
-                    fontSize: 40,
+                    fontSize: 35,
                     color: Color(0xff1E293B),
                   ),
                 ),
