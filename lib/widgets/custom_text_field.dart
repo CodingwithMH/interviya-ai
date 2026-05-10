@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class CustomTextField extends StatelessWidget {
   final String hintText;
   final IconData icon;
+  final Function(String)? onChanged;
   final TextEditingController? controller;
   final Widget? suffixIcon;
   final bool obscureText;
@@ -13,6 +14,7 @@ class CustomTextField extends StatelessWidget {
     super.key,
     required this.hintText,
     required this.icon,
+    this.onChanged,
     this.controller,
     this.suffixIcon,
     this.obscureText = false,
@@ -41,6 +43,7 @@ class CustomTextField extends StatelessWidget {
           obscureText: obscureText,
           keyboardType: keyboardType,
           validator: validator,
+          onChanged: onChanged,
           decoration: InputDecoration(
             hintText: hintText,
             border: InputBorder.none,

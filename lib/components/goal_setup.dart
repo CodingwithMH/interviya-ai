@@ -2,20 +2,26 @@ import 'package:flutter/material.dart';
 
 class GoalSetup extends StatefulWidget {
   final VoidCallback onContinue;
-  const GoalSetup({super.key, required this.onContinue});
-
+  final Function(String) onUpdate; // Add this
+  final String? selectedGoal;
+const GoalSetup({super.key, required this.onContinue, required this.onUpdate, this.selectedGoal});
   @override
   State<GoalSetup> createState() => _GoalSetupState();
 }
 
 class _GoalSetupState extends State<GoalSetup> {
+  String? currentGoal;
   final List<Map<String, dynamic>> goals = [
     {"icon": Icons.ads_click, "heading": "Crack a Specific Interview"},
     {"icon": Icons.record_voice_over, "heading": "Improve Communication"},
     {"icon": Icons.computer, "heading": "Master Technical Round"},
     {"icon": Icons.bar_chart_rounded, "heading": "Get Performance Insights"},
   ];
-
+@override
+  void initState() {
+    super.initState();
+    currentGoal = widget.selectedGoal;
+  }
   @override
   Widget build(BuildContext context) {
     bool isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
@@ -34,41 +40,48 @@ class _GoalSetupState extends State<GoalSetup> {
                 crossAxisCount: isLandscape ? 4 : 2,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                // Using 0.9 instead of 1.0 prevents overflow on narrow screens
                 childAspectRatio: isLandscape ? 1.1 : 0.9, 
               ),
               itemBuilder: (context, index) {
                 final item = goals[index];
-                return Card(
-                  elevation: 3,
-                  color: Colors.white,
-                  margin: EdgeInsets.zero,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          item["icon"],
-                          size: isLandscape ? 30 : 40,
-                          color: const Color(0xff0A898D),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          item["heading"]!,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
+                bool isSelected = currentGoal == item["heading"];
+                return GestureDetector(
+                  onTap: () {
+                setState(() => currentGoal = item["heading"]);
+                widget.onUpdate(item["heading"]);
+              },
+                  child: Card(
+                    elevation: 3,
+                    color: isSelected ? const Color(0xff0A898D).withOpacity(0.1) : Colors.white,
+                    margin: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                  side: BorderSide(color: isSelected ? const Color(0xff0A898D) : Colors.transparent),
+                ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            item["icon"],
+                            size: isLandscape ? 30 : 40,
                             color: const Color(0xff0A898D),
-                            fontSize: isLandscape ? 13 : 15,
-                            height: 1.1,
                           ),
-                          textAlign: TextAlign.center,
-                          maxLines: 3,
-                        ),
-                      ],
+                          const SizedBox(height: 8),
+                          Text(
+                            item["heading"]!,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xff0A898D),
+                              fontSize: isLandscape ? 13 : 15,
+                              height: 1.1,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 3,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );

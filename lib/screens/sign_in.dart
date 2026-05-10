@@ -103,6 +103,7 @@ class _SignInState extends State<SignIn> {
                       hintText: "Email Address",
                       icon: Icons.mail,
                       controller: email,
+                      keyboardType: TextInputType.emailAddress,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return "Please enter your email";

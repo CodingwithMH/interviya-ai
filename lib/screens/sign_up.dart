@@ -28,7 +28,7 @@ class _SignUpState extends State<SignUp> {
       password: password.text,
       username: username.text,
     );
-
+    if (!mounted) return;
     setState(() => isLoading = false);
 
     if (result == "success") {
@@ -120,6 +120,7 @@ class _SignUpState extends State<SignUp> {
                       hintText: "Email Address",
                       icon: Icons.mail,
                       controller: email,
+                      keyboardType: TextInputType.emailAddress,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return "Please enter your email";

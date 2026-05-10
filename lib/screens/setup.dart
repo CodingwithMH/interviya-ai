@@ -4,6 +4,8 @@ import 'package:flutter_project/components/goal_setup.dart';
 import 'package:flutter_project/components/profile_setup.dart';
 import "dart:math" as math;
 
+import 'package:flutter_project/data/models/user_model.dart';
+
 class Setup extends StatefulWidget {
   const Setup({super.key});
   @override
@@ -11,6 +13,7 @@ class Setup extends StatefulWidget {
 }
 
 class _SetupState extends State<Setup> {
+  UserModel user = UserModel();
   int currentIndex = 0;
   final List<String> stepHeadings = [
     "Setup Your Profile",
@@ -19,18 +22,39 @@ class _SetupState extends State<Setup> {
   ];
   void handleSteps() {
     setState(() {
-      currentIndex = (currentIndex + 1) % 3;
+      // currentIndex = (currentIndex + 1) % 3;
+      if (currentIndex < 2) {
+        currentIndex++;
+      } else {
+        print("Final User Data: ${user.fullName}, ${user.currentStatus}");
+      }
     });
   }
 
   Widget getStepComponent() {
-  switch (currentIndex) {
-    case 0: return ProfileSetup(onContinue: handleSteps);
-    case 1: return ExperienceSetup(onContinue: handleSteps);
-    case 2: return GoalSetup(onContinue: handleSteps);
-    default: return Container();
+    switch (currentIndex) {
+      case 0:
+        return ProfileSetup(
+          currentUser: user,
+          onUpdate: (updatedData) => user = updatedData,
+          onContinue: handleSteps,
+        );
+      case 1:
+        return ExperienceSetup(
+          selectedExperience: user.experienceLevel,
+          onUpdate: (val) => setState(() => user.experienceLevel = val),
+          onContinue: handleSteps,
+        );
+      case 2:
+        return GoalSetup(
+          selectedGoal: user.mainGoal,
+          onUpdate: (val) => setState(() => user.mainGoal = val),
+          onContinue: handleSteps,
+        );
+      default:
+        return Container();
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
