@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -22,49 +21,61 @@ class _UploadAvatarState extends State<UploadAvatar> {
   final String cloudName = "dw5wdcchx";
   final String uploadPreset = "ml_default";
 
-  Future<void> _uploadToCloudinary() async {
-    final XFile? pickedFile = await _picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 50,
+Future<void> _uploadToCloudinary(ImageSource source) async {
+  final XFile? pickedFile = await _picker.pickImage(
+    source: source,
+    imageQuality: 50,
+  );
+
+  if (pickedFile == null) return;
+
+  setState(() {
+    _imageFile = File(pickedFile.path);
+    _isUploading = true;
+  });
+
+  try {
+    final url = Uri.parse(
+      'https://api.cloudinary.com/v1_1/$cloudName/image/upload',
     );
 
-    if (pickedFile == null) return;
+    // 1. Create the request
+    var request = http.MultipartRequest('POST', url);
 
-    setState(() {
-      _imageFile = File(pickedFile.path);
-      _isUploading = true;
-    });
+    // 2. Add fields
+    request.fields['upload_preset'] = uploadPreset;
 
-    try {
-      final url = Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
-      
-      var request = http.MultipartRequest('POST', url)
-        ..fields['upload_preset'] = uploadPreset
-        ..files.add(await http.MultipartFile.fromPath(
-          'file',
-          _imageFile!.path,
-          contentType: MediaType('image', 'jpeg'),
-        ));
+    // 3. Add the file using fromPath (specifically for Mobile/dart:io)
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'file', 
+        pickedFile.path, // Use the path from XFile directly
+      ),
+    );
 
-      var response = await request.send();
-      
-      if (response.statusCode == 200) {
-        var responseData = await response.stream.bytesToString();
-        var jsonResponse = jsonDecode(responseData);
-        
-        String secureUrl = jsonResponse['secure_url']; 
-        widget.onImageUpload(secureUrl);
-      } else {
-        throw Exception("Cloudinary upload failed: ${response.statusCode}");
-      }
-    } catch (e) {
+    // 4. Send and get response
+    var streamedResponse = await request.send();
+    var response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode == 200) {
+      var jsonResponse = jsonDecode(response.body);
+      String secureUrl = jsonResponse['secure_url'];
+      widget.onImageUpload(secureUrl);
+    } else {
+      throw Exception("Cloudinary upload failed: ${response.body}");
+    }
+  } catch (e) {
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: $e")),
       );
-    } finally {
+    }
+  } finally {
+    if (mounted) {
       setState(() => _isUploading = false);
     }
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +104,7 @@ class _UploadAvatarState extends State<UploadAvatar> {
       Positioned(
         bottom: -10,
         child: GestureDetector(
-          onTap: _isUploading ? null : _uploadToCloudinary,
+          onTap: _isUploading ? null : () => _showSelectionDialog(context),
           child: Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
@@ -113,4 +124,36 @@ class _UploadAvatarState extends State<UploadAvatar> {
     ],
   );
   }
+  void _showSelectionDialog(BuildContext context) {
+  showModalBottomSheet(
+    context: context,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (BuildContext context) {
+      return SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library, color: Color(0xff0A898D)),
+              title: const Text('Photo Gallery'),
+              onTap: () {
+                _uploadToCloudinary(ImageSource.gallery);
+                Navigator.of(context).pop();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt, color: Color(0xff0A898D)),
+              title: const Text('Camera'),
+              onTap: () {
+                _uploadToCloudinary(ImageSource.camera);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
 }

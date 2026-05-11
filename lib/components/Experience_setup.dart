@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_project/components/next_previous.dart';
 
 class ExperienceSetup extends StatefulWidget {
-  final Function(String) onUpdate; // Add this
+  final Function(String) onUpdate;
   final String? selectedExperience;
-  final VoidCallback onContinue;
+  final VoidCallback onNext;
+  final VoidCallback onPrevious;
   const ExperienceSetup({
     super.key,
-    required this.onContinue,
+    required this.onNext,
+    required this.onPrevious,
     required this.onUpdate,
     required this.selectedExperience,
   });
@@ -98,16 +101,26 @@ class _ExperienceSetupState extends State<ExperienceSetup> {
         }),
         Align(
           alignment: AlignmentGeometry.center,
-          child: ElevatedButton(
-            onPressed: widget.onContinue,
-            style: ElevatedButton.styleFrom(
-              elevation: 8,
-              padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-              backgroundColor: Color(0xff0A898D),
-              foregroundColor: Colors.white,
-            ),
-            child: Text("Continue", style: TextStyle(fontSize: 22)),
-          ),
+          child: NextPrevious(
+  onPrevious: widget.onPrevious, 
+  onNext: (widget.selectedExperience?.isNotEmpty ?? false)
+      ? widget.onNext 
+      : () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Please select a goal!")),
+          );
+        },
+),
+          // child: ElevatedButton(
+          //   onPressed: widget.onContinue,
+          //   style: ElevatedButton.styleFrom(
+          //     elevation: 8,
+          //     padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+          //     backgroundColor: Color(0xff0A898D),
+          //     foregroundColor: Colors.white,
+          //   ),
+          //   child: Text("Continue", style: TextStyle(fontSize: 22)),
+          // ),
         ),
       ],
     );

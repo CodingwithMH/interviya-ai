@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_project/components/next_previous.dart';
 import 'package:flutter_project/data/models/user_model.dart';
 import 'package:flutter_project/widgets/custom_dropdown_field.dart';
 import 'package:flutter_project/widgets/custom_text_field.dart';
@@ -6,12 +7,14 @@ import 'package:flutter_project/widgets/upload_avatar.dart';
 
 class ProfileSetup extends StatefulWidget {
   final Function(UserModel) onUpdate;
-  final VoidCallback onContinue;
+  final VoidCallback onNext;
+  final VoidCallback onPrevious;
   final UserModel currentUser;
 
   const ProfileSetup({
     super.key,
-    required this.onContinue,
+    required this.onNext,
+    required this.onPrevious,
     required this.onUpdate,
     required this.currentUser,
   });
@@ -38,17 +41,17 @@ class _ProfileSetupState extends State<ProfileSetup> {
   }
 
   void _notifyParent() {
-    widget.onUpdate(
-      UserModel(
-        fullName: nameController.text,
-        targetRole: roleController.text,
-        currentStatus: widget.currentUser.currentStatus,
-      ),
-    );
+    widget.currentUser.fullName = nameController.text;
+  widget.currentUser.targetRole = roleController.text;
+  
+  widget.onUpdate(widget.currentUser);
   }
 
   @override
   Widget build(BuildContext context) {
+    bool isFormValid = (widget.currentUser.fullName?.isNotEmpty ?? false) &&
+                   (widget.currentUser.targetRole?.isNotEmpty ?? false) &&
+                   (widget.currentUser.currentStatus != null);
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -84,16 +87,22 @@ class _ProfileSetupState extends State<ProfileSetup> {
             onChanged: (val) => _notifyParent(),
           ),
           SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: widget.onContinue,
-            style: ElevatedButton.styleFrom(
-              elevation: 8,
-              padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-              backgroundColor: Color(0xff0A898D),
-              foregroundColor: Colors.white,
-            ),
-            child: Text("Continue", style: TextStyle(fontSize: 22)),
-          ),
+          NextPrevious(onPrevious: widget.onPrevious, onNext: isFormValid ? widget.onNext : () {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Please fill all fields to continue")),
+    );
+    }
+    ),
+          // ElevatedButton(
+          //   onPressed: widget.onContinue,
+          //   style: ElevatedButton.styleFrom(
+          //     elevation: 8,
+          //     padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+          //     backgroundColor: Color(0xff0A898D),
+          //     foregroundColor: Colors.white,
+          //   ),
+          //   child: Text("Continue", style: TextStyle(fontSize: 22)),
+          // ),
         ],
       ),
     );

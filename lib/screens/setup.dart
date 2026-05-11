@@ -20,7 +20,7 @@ class _SetupState extends State<Setup> {
     "What's your experience level?",
     "What's your main goal?",
   ];
-  void handleSteps() {
+  void handleNext() {
     setState(() {
       // currentIndex = (currentIndex + 1) % 3;
       if (currentIndex < 2) {
@@ -30,6 +30,15 @@ class _SetupState extends State<Setup> {
       }
     });
   }
+  void handlePrevious() {
+  setState(() {
+    if (currentIndex > 0) {
+      currentIndex--;
+    } else {
+      Navigator.pop(context);
+    }
+  });
+}
 
   Widget getStepComponent() {
     switch (currentIndex) {
@@ -37,19 +46,22 @@ class _SetupState extends State<Setup> {
         return ProfileSetup(
           currentUser: user,
           onUpdate: (updatedData) => user = updatedData,
-          onContinue: handleSteps,
+          onNext: handleNext,
+          onPrevious: handlePrevious,
         );
       case 1:
         return ExperienceSetup(
           selectedExperience: user.experienceLevel,
           onUpdate: (val) => setState(() => user.experienceLevel = val),
-          onContinue: handleSteps,
+          onNext: handleNext,
+          onPrevious: handlePrevious,
         );
       case 2:
         return GoalSetup(
           selectedGoal: user.mainGoal,
           onUpdate: (val) => setState(() => user.mainGoal = val),
-          onContinue: handleSteps,
+          onNext: handleNext,
+          onPrevious: handlePrevious,
         );
       default:
         return Container();
