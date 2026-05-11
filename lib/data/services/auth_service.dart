@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_project/data/models/user_model.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -47,4 +48,22 @@ class AuthService {
       return e.toString();
     }
   }
+  Future<String?> updateUserProfile(UserModel userData) async {
+  try {
+    String uid = _auth.currentUser!.uid;
+    
+    await _firestore.collection('users').doc(uid).update({
+      'fullName': userData.fullName,
+      'currentStatus': userData.currentStatus,
+      'targetRole': userData.targetRole,
+      'experienceLevel': userData.experienceLevel,
+      'mainGoal': userData.mainGoal,
+      // 'avatarUrl': userData.avatarPath, 
+    });
+
+    return "success";
+  } catch (e) {
+    return e.toString();
+  }
+}
 }

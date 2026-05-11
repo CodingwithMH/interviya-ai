@@ -23,44 +23,43 @@ class CustomTextField extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 6,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4.0),
-        child: TextFormField(
-          controller: controller,
-          obscureText: obscureText,
-          keyboardType: keyboardType,
-          validator: validator,
-          onChanged: onChanged,
-          decoration: InputDecoration(
-            hintText: hintText,
-            border: InputBorder.none,
-            contentPadding: EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 12,
-            ),
-            prefixIcon: Icon(
-              icon,
-              color: Color(0xff0A898D),
-              size: 28,
-            ),
-            suffixIcon: suffixIcon,
-            errorStyle: const TextStyle(fontSize: 12, height: 0.8),
-          ),
+Widget build(BuildContext context) {
+  return Material(
+    elevation: 4, 
+    shadowColor: Colors.black26,
+    borderRadius: BorderRadius.circular(16),
+    color: Colors.transparent,
+    child: TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      validator: validator,
+      onChanged: onChanged,
+      textAlignVertical: TextAlignVertical.center,
+      decoration: InputDecoration(
+        hintText: hintText,
+        filled: true,
+        fillColor: Colors.white,
+        
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        
+        prefixIcon: Padding(
+          padding: const EdgeInsets.only(left: 12.0, right: 8.0),
+          child: Icon(icon, color: const Color(0xff0A898D), size: 24),
+        ),
+        suffixIcon: suffixIcon,
+        
+        errorStyle: const TextStyle(
+          fontSize: 12, 
+          height: 1.1,
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

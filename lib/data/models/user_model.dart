@@ -1,7 +1,5 @@
 class UserModel {
   String? fullName;
-  String? email;
-  String? password;
   String? currentStatus;
   String? targetRole;
   String? experienceLevel;
@@ -10,12 +8,22 @@ class UserModel {
 
   UserModel({
     this.fullName,
-    this.email,
-    this.password,
     this.currentStatus,
     this.targetRole,
     this.experienceLevel,
     this.mainGoal,
     this.avatarPath,
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'fullName': fullName,
+      'currentStatus': currentStatus,
+      'targetRole': targetRole,
+      'experienceLevel': experienceLevel,
+      'mainGoal': mainGoal,
+      'avatarPath': avatarPath,
+      'createdAt': DateTime.now(),
+    };
+}
 }

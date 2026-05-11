@@ -143,7 +143,7 @@ class _SignInState extends State<SignIn> {
                       onPressed: isLoading ? null : handleSignIn,
                       style: ElevatedButton.styleFrom(
                         elevation: 8,
-                        padding: EdgeInsets.symmetric(vertical: 16),
+                        padding: EdgeInsets.symmetric(vertical: 14),
                         backgroundColor: Color(0xff0A898D),
                         foregroundColor: Colors.white,
                       ),
@@ -151,7 +151,7 @@ class _SignInState extends State<SignIn> {
                           ? const CircularProgressIndicator(color: Colors.white)
                           : const Text(
                               "Sign In",
-                              style: TextStyle(fontSize: 22),
+                              style: TextStyle(fontSize: 20),
                             ),
                     ),
                     SizedBox(height: 15),
@@ -164,16 +164,16 @@ class _SignInState extends State<SignIn> {
                     ElevatedButton.icon(
                       onPressed: () {},
                       style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 16),
+                        padding: EdgeInsets.symmetric(vertical: 14),
                         backgroundColor: Colors.white,
                       ),
                       icon: Image.asset(
                         'assets/images/google_logo.png',
-                        height: 24,
+                        height: 22,
                       ),
                       label: Text(
                         'Sign in with Google',
-                        style: TextStyle(fontSize: 22, color: Colors.black),
+                        style: TextStyle(fontSize: 20, color: Colors.black),
                       ),
                     ),
                     SizedBox(height: 5),

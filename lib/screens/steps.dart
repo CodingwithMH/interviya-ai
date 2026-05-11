@@ -70,12 +70,14 @@ class _StepsState extends State<Steps> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Image.asset(
+                    Flexible(
+                      child: Image.asset(
                       "assets/images/${steps[currentIndex]['image']!}",
                       height: 300,
                       width: 300,
                       fit: BoxFit.contain,
                     ),
+                    )
                   ],
                 ),
                 Expanded(child: Container()),
