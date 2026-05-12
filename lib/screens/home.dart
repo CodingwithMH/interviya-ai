@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_project/data/models/user_model.dart';
 import 'package:flutter_project/data/services/auth_service.dart';
@@ -15,15 +16,19 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   String searchQuery = "";
   String selectedCategory = "All";
-
+  Map<String, String> _categoryMap = {};
   String userName = "User";
   String? profileImage;
   bool isLoading = true;
+  List<Map<String, dynamic>> _interviews = [];
+List<String> _categories = ["All"]; 
+bool isDataLoading = true;
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    _fetchDatabaseData();
   }
 
   Future<void> _loadUserData() async {
@@ -36,43 +41,63 @@ class _HomeState extends State<Home> {
       });
     }
   }
-  final List<Map<String, dynamic>> allInterviews = [
-    {
-      "title": "Software Developer",
-      "icon": Icons.laptop_mac,
-      "cat": "Technical",
-      "count": 32,
-    },
-    {
-      "title": "Data Analyst",
-      "icon": Icons.bar_chart_rounded,
-      "cat": "Technical",
-      "count": 28,
-    },
-    {
-      "title": "HR Manager",
-      "icon": Icons.people,
-      "cat": "Management",
-      "count": 15,
-    },
-    {
-      "title": "Soft Skills",
-      "icon": Icons.chat,
-      "cat": "Behavioral",
-      "count": 45,
-    },
-  ];
+
+  Future<void> _fetchDatabaseData() async {
+  try {
+    final firestore = FirebaseFirestore.instance;
+
+    final catSnapshot =
+        await firestore.collection('categories').get();
+
+    Map<String, String> tempMap = {};
+
+    for (var doc in catSnapshot.docs) {
+      tempMap[doc.data()['id']] = doc.data()['name'];
+    }
+
+    final fetchedCats = tempMap.values.toList();
+
+    final intSnapshot =
+        await firestore.collection('interviews').get();
+
+    final fetchedInterviews = intSnapshot.docs.map((doc) {
+      Map<String, dynamic> data = doc.data();
+
+      return {
+        "title": data['title'] ?? 'Untitled',
+        "cat": tempMap[data['categoryId']] ?? 'General',
+        "icon": IconData(
+          data['iconCode'] ?? Icons.work.codePoint,
+          fontFamily: 'MaterialIcons',
+        ),
+        "count": data['count'] ?? 0,
+      };
+    }).toList();
+
+    if (mounted) {
+      setState(() {
+        _categoryMap = tempMap;
+        _categories = ["All", ...fetchedCats];
+        _interviews = fetchedInterviews;
+        isDataLoading = false;
+      });
+    }
+  } catch (e) {
+    debugPrint("Error fetching data: $e");
+
+    if (mounted) {
+      setState(() => isDataLoading = false);
+    }
+  }
+}
 
   @override
   Widget build(BuildContext context) {
-    List filteredInterviews = allInterviews.where((item) {
-      bool matchesSearch = item['title'].toLowerCase().contains(
-        searchQuery.toLowerCase(),
-      );
-      bool matchesCat =
-          selectedCategory == "All" || item['cat'] == selectedCategory;
-      return matchesSearch && matchesCat;
-    }).toList();
+    List filteredInterviews = _interviews.where((item) {
+    bool matchesSearch = item['title'].toLowerCase().contains(searchQuery.toLowerCase());
+    bool matchesCat = selectedCategory == "All" || item['cat'] == selectedCategory;
+    return matchesSearch && matchesCat;
+  }).toList();
 
     return Scaffold(
       backgroundColor: Color(0xFFF8FAFF),
@@ -336,11 +361,10 @@ class _HomeState extends State<Home> {
   }
 
   Widget _buildCategoryFilters() {
-    final categories = ["All", "Technical", "Behavioral", "Management"];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: categories.map((cat) {
+        children: _categories.map((cat) {
           bool isSelected = selectedCategory == cat;
           return GestureDetector(
             onTap: () => setState(() => selectedCategory = cat),
