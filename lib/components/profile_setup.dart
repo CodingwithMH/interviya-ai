@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_project/components/next_previous.dart';
 import 'package:flutter_project/data/models/user_model.dart';
@@ -7,12 +9,16 @@ import 'package:flutter_project/widgets/upload_avatar.dart';
 
 class ProfileSetup extends StatefulWidget {
   final Function(UserModel) onUpdate;
+  final Function(File) onFileChanged;
+  final File? localImageFile;
   final VoidCallback onNext;
   final VoidCallback onPrevious;
   final UserModel currentUser;
 
   const ProfileSetup({
     super.key,
+    required this.onFileChanged,
+    required this.localImageFile,
     required this.onNext,
     required this.onPrevious,
     required this.onUpdate,
@@ -57,10 +63,11 @@ class _ProfileSetupState extends State<ProfileSetup> {
     return Column(
         children: [
           UploadAvatar(
-            onImageUpload: (url) {
-              widget.currentUser.avatarPath = url;
-              _notifyParent();
-            },
+            initialImage: widget.localImageFile,
+  onImageSelected: (File file) {
+    widget.onFileChanged(file); 
+    _notifyParent();
+  },
           ),
           SizedBox(height: 60),
           CustomTextField(

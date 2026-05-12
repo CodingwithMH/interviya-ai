@@ -1,13 +1,12 @@
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 class UploadAvatar extends StatefulWidget {
-  final Function(String) onImageUpload;
-  const UploadAvatar({super.key, required this.onImageUpload});
+  final Function(File) onImageSelected;
+  final File? initialImage;
+  const UploadAvatar({super.key, required this.onImageSelected, this.initialImage});
 
   @override
   State<UploadAvatar> createState() => _UploadAvatarState();
@@ -15,13 +14,18 @@ class UploadAvatar extends StatefulWidget {
 
 class _UploadAvatarState extends State<UploadAvatar> {
   File? _imageFile;
-  bool _isUploading = false;
   final ImagePicker _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    _imageFile = widget.initialImage;
+  }
 
   final String cloudName = "dw5wdcchx";
   final String uploadPreset = "ml_default";
 
-Future<void> _uploadToCloudinary(ImageSource source) async {
+Future<void> _pickImage(ImageSource source) async {
   final XFile? pickedFile = await _picker.pickImage(
     source: source,
     imageQuality: 50,
@@ -29,52 +33,11 @@ Future<void> _uploadToCloudinary(ImageSource source) async {
 
   if (pickedFile == null) return;
 
-  setState(() {
-    _imageFile = File(pickedFile.path);
-    _isUploading = true;
-  });
-
-  try {
-    final url = Uri.parse(
-      'https://api.cloudinary.com/v1_1/$cloudName/image/upload',
-    );
-
-    // 1. Create the request
-    var request = http.MultipartRequest('POST', url);
-
-    // 2. Add fields
-    request.fields['upload_preset'] = uploadPreset;
-
-    // 3. Add the file using fromPath (specifically for Mobile/dart:io)
-    request.files.add(
-      await http.MultipartFile.fromPath(
-        'file', 
-        pickedFile.path, // Use the path from XFile directly
-      ),
-    );
-
-    // 4. Send and get response
-    var streamedResponse = await request.send();
-    var response = await http.Response.fromStream(streamedResponse);
-
-    if (response.statusCode == 200) {
-      var jsonResponse = jsonDecode(response.body);
-      String secureUrl = jsonResponse['secure_url'];
-      widget.onImageUpload(secureUrl);
-    } else {
-      throw Exception("Cloudinary upload failed: ${response.body}");
-    }
-  } catch (e) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
-      );
-    }
-  } finally {
-    if (mounted) {
-      setState(() => _isUploading = false);
-    }
-  }
+  File file = File(pickedFile.path);
+  setState(() => _imageFile = file);
+  
+  // Pass the local file back to the parent
+  widget.onImageSelected(file); 
 }
 
   @override
@@ -104,7 +67,7 @@ Future<void> _uploadToCloudinary(ImageSource source) async {
       Positioned(
         bottom: -10,
         child: GestureDetector(
-          onTap: _isUploading ? null : () => _showSelectionDialog(context),
+          onTap: () => _showSelectionDialog(context),
           child: Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
@@ -138,7 +101,7 @@ Future<void> _uploadToCloudinary(ImageSource source) async {
               leading: const Icon(Icons.photo_library, color: Color(0xff0A898D)),
               title: const Text('Photo Gallery'),
               onTap: () {
-                _uploadToCloudinary(ImageSource.gallery);
+                _pickImage(ImageSource.gallery);
                 Navigator.of(context).pop();
               },
             ),
@@ -146,7 +109,7 @@ Future<void> _uploadToCloudinary(ImageSource source) async {
               leading: const Icon(Icons.camera_alt, color: Color(0xff0A898D)),
               title: const Text('Camera'),
               onTap: () {
-                _uploadToCloudinary(ImageSource.camera);
+                _pickImage(ImageSource.camera);
                 Navigator.of(context).pop();
               },
             ),

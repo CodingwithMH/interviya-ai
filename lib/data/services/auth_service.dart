@@ -21,6 +21,7 @@ class AuthService {
         'username': username.trim(),
         'email': email.trim(),
         'uid': userCredential.user!.uid,
+        'hasFinishedSetup': false,
         'createdAt': DateTime.now(),
       });
 
@@ -31,6 +32,7 @@ class AuthService {
       return e.toString();
     }
   }
+
   Future<String?> signInUser({
     required String email,
     required String password,
@@ -40,7 +42,6 @@ class AuthService {
         email: email.trim(),
         password: password.trim(),
       );
-
       return "success";
     } on FirebaseAuthException catch (e) {
       return e.message;
@@ -48,22 +49,34 @@ class AuthService {
       return e.toString();
     }
   }
-  Future<String?> updateUserProfile(UserModel userData) async {
-  try {
-    String uid = _auth.currentUser!.uid;
-    
-    await _firestore.collection('users').doc(uid).update({
-      'fullName': userData.fullName,
-      'currentStatus': userData.currentStatus,
-      'targetRole': userData.targetRole,
-      'experienceLevel': userData.experienceLevel,
-      'mainGoal': userData.mainGoal,
-      // 'avatarUrl': userData.avatarPath, 
-    });
 
-    return "success";
-  } catch (e) {
-    return e.toString();
+  Future<UserModel?> getUserData() async {
+    try {
+      User? currentUser = _auth.currentUser;
+      if (currentUser == null) return null;
+
+      DocumentSnapshot doc = await _firestore.collection('users').doc(currentUser.uid).get();
+
+      if (doc.exists && doc.data() != null) {
+        return UserModel.fromMap(doc.data() as Map<String, dynamic>);
+      }
+    } catch (e) {
+      print("Error fetching user data: $e");
+    }
+    return null;
   }
-}
+
+  Future<String?> updateUserProfile(UserModel userData) async {
+    try {
+      String uid = _auth.currentUser!.uid;
+      await _firestore.collection('users').doc(uid).set(
+        userData.toMap(),
+        SetOptions(merge: true), 
+      );
+
+      return "success";
+    } catch (e) {
+      return e.toString();
+    }
+  }
 }
