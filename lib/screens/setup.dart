@@ -5,6 +5,7 @@ import 'package:flutter_project/components/profile_setup.dart';
 import "dart:math" as math;
 
 import 'package:flutter_project/data/models/user_model.dart';
+import 'package:flutter_project/widgets/main_wrapper.dart';
 
 class Setup extends StatefulWidget {
   const Setup({super.key});
@@ -26,19 +27,24 @@ class _SetupState extends State<Setup> {
       if (currentIndex < 2) {
         currentIndex++;
       } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MainWrapper()),
+        );
         print("Final User Data: ${user.fullName}, ${user.currentStatus}");
       }
     });
   }
+
   void handlePrevious() {
-  setState(() {
-    if (currentIndex > 0) {
-      currentIndex--;
-    } else {
-      Navigator.pop(context);
-    }
-  });
-}
+    setState(() {
+      if (currentIndex > 0) {
+        currentIndex--;
+      } else {
+        Navigator.pop(context);
+      }
+    });
+  }
 
   Widget getStepComponent() {
     switch (currentIndex) {
@@ -87,42 +93,40 @@ class _SetupState extends State<Setup> {
               ),
             ),
             Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 40, horizontal: 30),
-                  child: Column(
-                    children: [
-                      Text(
-                        "Step ${currentIndex + 1}/3",
-                        style: TextStyle(
-                          color: Color(0xff0A898D),
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 40, horizontal: 30),
+                child: Column(
+                  children: [
+                    Text(
+                      "Step ${currentIndex + 1}/3",
+                      style: TextStyle(
+                        color: Color(0xff0A898D),
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(3, (index) => buildLine(index)),
-                        ),
+                      textAlign: TextAlign.center,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(3, (index) => buildLine(index)),
                       ),
-                      Text(
-                        stepHeadings[currentIndex],
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 30,
-                          color: Color(0xff1E293B),
-                        ),
+                    ),
+                    Text(
+                      stepHeadings[currentIndex],
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 30,
+                        color: Color(0xff1E293B),
                       ),
-                      Spacer(),
-                      Center(child: getStepComponent()),
-                      Spacer(),
-                    ],
-                  ),
+                    ),
+                    Expanded(child: Center(child: getStepComponent())),
+                  ],
                 ),
               ),
+            ),
           ],
         ),
       ),

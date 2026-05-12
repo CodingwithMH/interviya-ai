@@ -132,8 +132,8 @@ class _SignInState extends State<SignIn> {
                       ), 
                       obscureText: obsecure,
                       validator: (value) {
-                        if (value == null || value.length < 6) {
-                          return "Password must be at least 6 characters";
+                        if (value == null) {
+                          return "Password must be valid";
                         }
                         return null;
                       },

@@ -41,8 +41,10 @@ class _ProfileSetupState extends State<ProfileSetup> {
   }
 
   void _notifyParent() {
+    setState((){
     widget.currentUser.fullName = nameController.text;
   widget.currentUser.targetRole = roleController.text;
+    });
   
   widget.onUpdate(widget.currentUser);
   }
@@ -52,8 +54,7 @@ class _ProfileSetupState extends State<ProfileSetup> {
     bool isFormValid = (widget.currentUser.fullName?.isNotEmpty ?? false) &&
                    (widget.currentUser.targetRole?.isNotEmpty ?? false) &&
                    (widget.currentUser.currentStatus != null);
-    return SingleChildScrollView(
-      child: Column(
+    return Column(
         children: [
           UploadAvatar(
             onImageUpload: (url) {
@@ -104,7 +105,6 @@ class _ProfileSetupState extends State<ProfileSetup> {
           //   child: Text("Continue", style: TextStyle(fontSize: 22)),
           // ),
         ],
-      ),
     );
   }
 }

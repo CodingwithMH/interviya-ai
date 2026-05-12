@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_project/screens/interview_room.dart';
 
 class InterviewSetup extends StatefulWidget {
   const InterviewSetup({super.key});
@@ -47,184 +48,188 @@ class _InterviewSetupState extends State<InterviewSetup> {
           ),
         ),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(30.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-           
-            SizedBox(height: 20),
-            Container(
-              padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(25),
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0xff1E293B).withValues(alpha: 0.1),
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.laptop_mac, color: Color(0xFF0A898D), size: 30),
-                  SizedBox(width: 25),
-
-                  Text(
-                    "Software Developer",
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-
-                      color: Color(0xFF0A898D),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 55),
-
-            Text(
-              "Select Interview Mode",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Color(0xff1E293B),
-              ),
-            ),
-            SizedBox(height: 15),
-
-            Row(
-              children: [
-                Expanded(
-                  child: modeCard(
-                    "Full Mock\nInterview",
-                    Icons.emoji_events_outlined,
-                    true,
-                  ),
-                ),
-                SizedBox(width: 25),
-                Expanded(
-                  child: modeCard(
-                    "Focused\nPractice",
-                    Icons.track_changes,
-                    false,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 55),
-
-            Text(
-              "Select Difficulty",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Color(0xff1E293B),
-              ),
-            ),
-            SizedBox(height: 15),
-            
-            SliderTheme(
-              data: SliderThemeData(
-                activeTrackColor: Color(0xFF0A898D),
-                inactiveTrackColor: Colors.grey[300],
-                thumbColor: Color(0xFF0A898D),
-                overlayColor: Color(0xFF0A898D).withValues(alpha: 0.2),
-              ),
-              child: Slider(
-                value: _difficultyValue,
-                min: 0,
-                max: 2,
-                divisions: 2,
-                onChanged: (value) {
-                  setState(() {
-                    _difficultyValue = value;
-                  });
-                },
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Beginner",
-                    style: TextStyle(
-                      color: _difficultyValue == 0
-                          ? Color(0xFF0A898D)
-                          : Colors.grey,
-                    ),
-                  ),
-                  Text(
-                    "Intermediate",
-                    style: TextStyle(
-                      color: _difficultyValue == 1
-                          ? Color(0xFF0A898D)
-                          : Colors.grey,
-                    ),
-                  ),
-                  Text(
-                    "Expert",
-                    style: TextStyle(
-                      color: _difficultyValue == 2
-                          ? Color(0xFF0A898D)
-                          : Colors.grey,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 55),
-
-           
-            Center(
-              child: Container(
-                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.all(30.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+             
+              SizedBox(height: 20),
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
                 decoration: BoxDecoration(
-                  color: Color(0xFF0A898D).withValues(alpha: 0.6),
-                  borderRadius: BorderRadius.circular(20),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(25),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0xff1E293B).withValues(alpha: 0.1),
+                      blurRadius: 10,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: Row(
-                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.access_time, color: Colors.white, size: 18),
-                    SizedBox(width: 8),
+                    Icon(Icons.laptop_mac, color: Color(0xFF0A898D), size: 30),
+                    SizedBox(width: 25),
+        
                     Text(
-                      "15 Mins | 10 Questions",
+                      "Software Developer",
                       style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+        
+                        color: Color(0xFF0A898D),
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
-
-            SizedBox(height: 55),
-            
-            SizedBox(
-              width: double.infinity,
-              height: 55,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF0A898D),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-                onPressed: () {},
-                child: Text(
-                  "Start Interview Now",
-                  style: TextStyle(fontSize: 18, color: Colors.white),
+              SizedBox(height: 55),
+        
+              Text(
+                "Select Interview Mode",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xff1E293B),
                 ),
               ),
-            ),
-          ],
+              SizedBox(height: 15),
+        
+              Row(
+                children: [
+                  Expanded(
+                    child: modeCard(
+                      "Full Mock\nInterview",
+                      Icons.emoji_events_outlined,
+                      true,
+                    ),
+                  ),
+                  SizedBox(width: 25),
+                  Expanded(
+                    child: modeCard(
+                      "Focused\nPractice",
+                      Icons.track_changes,
+                      false,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 55),
+        
+              Text(
+                "Select Difficulty",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xff1E293B),
+                ),
+              ),
+              SizedBox(height: 15),
+              
+              SliderTheme(
+                data: SliderThemeData(
+                  activeTrackColor: Color(0xFF0A898D),
+                  inactiveTrackColor: Colors.grey[300],
+                  thumbColor: Color(0xFF0A898D),
+                  overlayColor: Color(0xFF0A898D).withValues(alpha: 0.2),
+                ),
+                child: Slider(
+                  value: _difficultyValue,
+                  min: 0,
+                  max: 2,
+                  divisions: 2,
+                  onChanged: (value) {
+                    setState(() {
+                      _difficultyValue = value;
+                    });
+                  },
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Beginner",
+                      style: TextStyle(
+                        color: _difficultyValue == 0
+                            ? Color(0xFF0A898D)
+                            : Colors.grey,
+                      ),
+                    ),
+                    Text(
+                      "Intermediate",
+                      style: TextStyle(
+                        color: _difficultyValue == 1
+                            ? Color(0xFF0A898D)
+                            : Colors.grey,
+                      ),
+                    ),
+                    Text(
+                      "Expert",
+                      style: TextStyle(
+                        color: _difficultyValue == 2
+                            ? Color(0xFF0A898D)
+                            : Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 55),
+              Center(
+                child: Container(
+                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                  decoration: BoxDecoration(
+                    color: Color(0xFF0A898D).withValues(alpha: 0.6),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.access_time, color: Colors.white, size: 18),
+                      SizedBox(width: 8),
+                      Text(
+                        "15 Mins | 10 Questions",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+        
+              SizedBox(height: 55),
+              
+              SizedBox(
+                width: double.infinity,
+                height: 55,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF0A898D),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.push(context, 
+                    MaterialPageRoute(builder: (context)=> InterviewRoom())
+                    );
+                  },
+                  child: Text(
+                    "Start Interview Now",
+                    style: TextStyle(fontSize: 18, color: Colors.white),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
