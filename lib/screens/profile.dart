@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class Profile extends StatefulWidget {
-    const Profile({super.key});
+  final VoidCallback onBack;
+    const Profile({super.key, required this.onBack});
 
   @override
   State<Profile> createState() => _ProfileState();
@@ -21,7 +22,7 @@ class _ProfileState extends State<Profile> {
             padding: EdgeInsets.only(top:5),
             child: IconButton(
               icon: Icon(Icons.arrow_back, color: Colors.white, size: 35),
-              onPressed: () => Navigator.pop(context),
+              onPressed: widget.onBack,
             ),
           ),
           title: Padding(

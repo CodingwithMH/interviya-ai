@@ -3,6 +3,7 @@ import 'package:flutter_project/screens/home.dart';
 import 'package:flutter_project/screens/history.dart';
 import 'package:flutter_project/screens/stats.dart';
 import 'package:flutter_project/screens/profile.dart';
+import 'package:flutter_project/screens/upload.dart';
 
 class MainWrapper extends StatefulWidget {
   const MainWrapper({super.key});
@@ -14,12 +15,23 @@ class MainWrapper extends StatefulWidget {
 class _MainWrapperState extends State<MainWrapper> {
   int _selectedIndex = 0;
 
-  final List<Widget> _screens = [
+late final List<Widget> _screens;
+
+@override
+void initState() {
+  super.initState();
+  _screens = [
     const Home(),
-    const History(),
-    const Stats(),
-    const Profile(),
+    History(onBack: navigateToHome),
+    Stats(onBack: navigateToHome),
+    Profile(onBack: navigateToHome),
+    Upload(onUploadSuccess: navigateToHome),
   ];
+}
+
+void navigateToHome () {
+      setState(() => _selectedIndex = 0);
+    }
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +76,10 @@ class _MainWrapperState extends State<MainWrapper> {
               BottomNavigationBarItem(
                 icon: Icon(Icons.person_rounded),
                 label: 'Profile',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.upload),
+                label: 'Upload',
               ),
             ],
           ),

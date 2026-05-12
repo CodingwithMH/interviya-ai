@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class History extends StatefulWidget {
-  const History({super.key});
+  final VoidCallback onBack;
+  const History({super.key, required this.onBack});
 
   @override
   State<History> createState() => _HistoryState();
@@ -142,7 +143,7 @@ class _HistoryState extends State<History> {
             padding: EdgeInsets.only(top:5),
             child: IconButton(
               icon: Icon(Icons.arrow_back, color: Colors.white, size: 35),
-              onPressed: () => Navigator.pop(context),
+              onPressed: widget.onBack,
             ),
           ),
           title: Padding(

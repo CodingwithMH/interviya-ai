@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_project/data/models/user_model.dart';
 import 'package:flutter_project/data/services/auth_service.dart';
 import 'package:flutter_project/screens/setup.dart';
 import 'package:flutter_project/screens/sign_up.dart';
 import 'package:flutter_project/widgets/custom_text_field.dart';
+import 'package:flutter_project/widgets/main_wrapper.dart';
 
 class SignIn extends StatefulWidget {
   const SignIn({super.key});
@@ -17,39 +19,41 @@ class _SignInState extends State<SignIn> {
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
   final _formkey = GlobalKey<FormState>();
-  void handleSignIn () async {
-    if (!_formkey.currentState!.validate()) return;
+  void handleSignIn() async {
+  if (!_formkey.currentState!.validate()) return;
 
-    setState(() => isLoading = true);
+  setState(() => isLoading = true);
 
-    String? result = await AuthService().signInUser(
-      email: email.text,
-      password: password.text,
-    );
+  String? result = await AuthService().signInUser(
+    email: email.text,
+    password: password.text,
+  );
+
+  if (result == "success") {
+    UserModel? userProfile = await AuthService().getUserData(); 
 
     setState(() => isLoading = false);
 
-    if (result=="success") {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Logged In Successfully!"),
-          duration: Duration(seconds: 2),
-        ),
-      );
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => Setup()),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result ?? "An error occurred"),
-          duration: Duration(seconds: 2),
-        ),
-      );
+    if (mounted) {
+      if (userProfile != null && userProfile.hasFinishedSetup == true) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainWrapper()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const Setup()),
+        );
+      }
     }
-
+  } else {
+    setState(() => isLoading = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(result ?? "An error occurred")),
+    );
   }
+}
   @override
   void dispose() {
     email.dispose();

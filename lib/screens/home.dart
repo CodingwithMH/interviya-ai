@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_project/data/models/user_model.dart';
+import 'package:flutter_project/data/services/auth_service.dart';
 import 'package:flutter_project/screens/interview_setup.dart';
 import 'package:flutter_project/screens/feedback.dart';
 import 'package:flutter_project/screens/help.dart';
@@ -14,6 +16,26 @@ class _HomeState extends State<Home> {
   String searchQuery = "";
   String selectedCategory = "All";
 
+  String userName = "User";
+  String? profileImage;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    UserModel? user = await AuthService().getUserData();
+    if (user != null && mounted) {
+      setState(() {
+        userName = user.fullName ?? "User";
+        profileImage = user.avatarPath;
+        isLoading = false;
+      });
+    }
+  }
   final List<Map<String, dynamic>> allInterviews = [
     {
       "title": "Software Developer",
@@ -64,9 +86,9 @@ class _HomeState extends State<Home> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(height: 15),
-                  _buildSearchBar(),
-                  SizedBox(height: 15),
                   _buildReadinessCard(),
+                  SizedBox(height: 15),
+                  _buildSearchBar(),
                   SizedBox(height: 15),
                   _buildCategoryFilters(),
                   SizedBox(height: 15),
@@ -126,31 +148,33 @@ class _HomeState extends State<Home> {
             child: Row(
               children: [
                 CircleAvatar(
-                  radius: 25,
-                  backgroundImage: AssetImage("assets/images/user.png"),
-                ),
-                SizedBox(width: 12),
-
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        "Welcome Back, Zainab!",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                          color: Color(0xFF1E293B),
-                        ),
+                radius: 25,
+                backgroundColor: Colors.grey.shade200,
+                backgroundImage: profileImage != null 
+                    ? NetworkImage(profileImage!) as ImageProvider
+                    : const AssetImage("assets/images/user.png"),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Welcome Back, $userName!",
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: Color(0xFF1E293B),
                       ),
-                      Text(
-                        "Let's practice today",
-                        style: TextStyle(color: Colors.grey, fontSize: 12),
-                      ),
-                    ],
-                  ),
+                    ),
+                    const Text(
+                      "Let's practice today",
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                  ],
                 ),
+              ),
 
                 IconButton(
                   icon: Icon(
@@ -159,7 +183,6 @@ class _HomeState extends State<Home> {
                     size: 22,
                   ),
                   onPressed: () {
-                    
                   },
                 ),
 
@@ -197,19 +220,9 @@ class _HomeState extends State<Home> {
                       value: 'feedback',
                       child: Row(
                         children:  [
-                          Icon(
-                            Icons.feedback_outlined,
-                            size: 20,
-                            color: Color(0xFF0A898D),
-                          ),
+                          Icon( Icons.feedback_outlined, size: 20, color: Color(0xFF0A898D), ),
                           SizedBox(width: 12),
-                          Text(
-                            'Feedback',
-                            style: TextStyle(
-                              color: Color(0xFF1E293B),
-                              fontSize: 14,
-                            ),
-                          ),
+                          Text( 'Feedback', style: TextStyle( color: Color(0xFF1E293B), fontSize: 14, ), ),
                         ],
                       ),
                     ),
@@ -217,11 +230,7 @@ class _HomeState extends State<Home> {
                       value: 'help',
                       child: Row(
                         children:  [
-                          Icon(
-                            Icons.help_outline_rounded,
-                            size: 20,
-                            color: Color(0xFF0A898D),
-                          ),
+                          Icon( Icons.help_outline_rounded, size: 20, color: Color(0xFF0A898D), ),
                           SizedBox(width: 12),
                           Text(
                             'Help',
@@ -277,15 +286,15 @@ class _HomeState extends State<Home> {
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: Color(0xff1A237E).withValues(alpha: 0.15),
-            blurRadius: 20,
-            offset: Offset(0, -10),
+            color: Colors.black.withValues(alpha: 0.3),
+            blurRadius: 10,
+            offset: Offset(0, 5),
           ),
         ],
         gradient: LinearGradient(
           colors: [Color(0xFF0CBABF), Color(0xFF0A898D)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
         ),
         borderRadius: BorderRadius.circular(25),
       ),

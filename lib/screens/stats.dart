@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class Stats extends StatefulWidget {
-  const Stats({super.key});
+  final VoidCallback onBack;
+  const Stats({super.key, required this.onBack});
 
   @override
   State<Stats> createState() => _StatsState();
@@ -22,7 +23,7 @@ class _StatsState extends State<Stats> {
             padding: EdgeInsets.only(top: 5),
             child: IconButton(
               icon: Icon(Icons.arrow_back, color: Colors.white, size: 35),
-              onPressed: () => Navigator.pop(context),
+              onPressed: widget.onBack,
             ),
           ),
           title: Padding(
