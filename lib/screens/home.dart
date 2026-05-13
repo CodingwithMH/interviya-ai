@@ -16,7 +16,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   String searchQuery = "";
   String selectedCategory = "All";
-  Map<String, String> _categoryMap = {};
+  // Map<String, String> _categoryMap = {};
   String userName = "User";
   String? profileImage;
   bool isLoading = true;
@@ -76,7 +76,7 @@ bool isDataLoading = true;
 
     if (mounted) {
       setState(() {
-        _categoryMap = tempMap;
+        // _categoryMap = tempMap;
         _categories = ["All", ...fetchedCats];
         _interviews = fetchedInterviews;
         isDataLoading = false;

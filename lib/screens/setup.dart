@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_project/components/Experience_setup.dart';
-import 'package:flutter_project/components/goal_setup.dart';
-import 'package:flutter_project/components/profile_setup.dart';
+import 'package:flutter_project/widgets/Experience_setup.dart';
+import 'package:flutter_project/widgets/goal_setup.dart';
+import 'package:flutter_project/widgets/profile_setup.dart';
 import "dart:math" as math;
 
 import 'package:flutter_project/data/models/user_model.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_project/components/next_previous.dart';
+import 'package:flutter_project/widgets/next_previous.dart';
 
 class GoalSetup extends StatefulWidget {
   final VoidCallback onNext;
