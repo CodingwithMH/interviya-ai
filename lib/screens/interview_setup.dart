@@ -1,39 +1,51 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_project/data/models/user_model.dart';
+import 'package:flutter_project/data/providers/interview_provider.dart';
 import 'package:flutter_project/screens/interview_room.dart';
+import 'package:provider/provider.dart';
 
 class InterviewSetup extends StatefulWidget {
-  const InterviewSetup({super.key});
+  final Map<String, dynamic> interview;
+  const InterviewSetup({super.key, required this.interview});
 
   @override
   State<InterviewSetup> createState() => _InterviewSetupState();
 }
 
 class _InterviewSetupState extends State<InterviewSetup> {
-  double _difficultyValue = 1; 
+  double _difficultyValue = 1;
   String selectedMode = "Full Mock";
+  Map<String, String> getSessionSettings() {
+    if (_difficultyValue == 0) {
+      return {"time": "10", "questions": "5"};
+    } else if (_difficultyValue == 1) {
+      return {"time": "20", "questions": "10"};
+    } else {
+      return {"time": "35", "questions": "15"};
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFF8FAFF),
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(80.0), 
+        preferredSize: Size.fromHeight(80.0),
         child: AppBar(
           backgroundColor: Color(0xFF0A898D),
           elevation: 0,
           centerTitle: false,
           leading: Padding(
-            padding: EdgeInsets.only(
-              top: 10,
-            ),
+            padding: EdgeInsets.only(top: 10),
             child: IconButton(
               icon: Icon(Icons.arrow_back, color: Colors.white, size: 40),
               onPressed: () => Navigator.pop(context),
             ),
           ),
           title: Padding(
-            padding: EdgeInsets.only(
-              top: 20,
-            ), 
+            padding: EdgeInsets.only(top: 20),
             child: Text(
               "Setup Interview",
               style: TextStyle(
@@ -54,7 +66,6 @@ class _InterviewSetupState extends State<InterviewSetup> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-             
               SizedBox(height: 20),
               Container(
                 padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
@@ -71,23 +82,26 @@ class _InterviewSetupState extends State<InterviewSetup> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.laptop_mac, color: Color(0xFF0A898D), size: 30),
+                    Icon(
+                      widget.interview['icon'],
+                      color: Color(0xFF0A898D),
+                      size: 30,
+                    ),
                     SizedBox(width: 25),
-        
-                    Text(
-                      "Software Developer",
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-        
-                        color: Color(0xFF0A898D),
+                    Expanded(
+                      child: Text(
+                        widget.interview['title'],
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0A898D),
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
               SizedBox(height: 55),
-        
               Text(
                 "Select Interview Mode",
                 style: TextStyle(
@@ -97,28 +111,33 @@ class _InterviewSetupState extends State<InterviewSetup> {
                 ),
               ),
               SizedBox(height: 15),
-        
               Row(
                 children: [
                   Expanded(
-                    child: modeCard(
-                      "Full Mock\nInterview",
-                      Icons.emoji_events_outlined,
-                      true,
+                    child: GestureDetector(
+                      onTap: () => setState(() => selectedMode = "Full Mock"),
+                      child: modeCard(
+                        "Full Mock\nInterview",
+                        Icons.emoji_events_outlined,
+                        selectedMode == "Full Mock",
+                      ),
                     ),
                   ),
                   SizedBox(width: 25),
                   Expanded(
-                    child: modeCard(
-                      "Focused\nPractice",
-                      Icons.track_changes,
-                      false,
+                    child: GestureDetector(
+                      onTap: () =>
+                          setState(() => selectedMode = "Focused Practice"),
+                      child: modeCard(
+                        "Focused\nPractice",
+                        Icons.track_changes,
+                        selectedMode == "Focused Practice",
+                      ),
                     ),
                   ),
                 ],
               ),
               SizedBox(height: 55),
-        
               Text(
                 "Select Difficulty",
                 style: TextStyle(
@@ -128,7 +147,6 @@ class _InterviewSetupState extends State<InterviewSetup> {
                 ),
               ),
               SizedBox(height: 15),
-              
               SliderTheme(
                 data: SliderThemeData(
                   activeTrackColor: Color(0xFF0A898D),
@@ -194,7 +212,7 @@ class _InterviewSetupState extends State<InterviewSetup> {
                       Icon(Icons.access_time, color: Colors.white, size: 18),
                       SizedBox(width: 8),
                       Text(
-                        "15 Mins | 10 Questions",
+                        "${getSessionSettings()['time']} Mins | ${getSessionSettings()['questions']} Questions",
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w500,
@@ -204,9 +222,9 @@ class _InterviewSetupState extends State<InterviewSetup> {
                   ),
                 ),
               ),
-        
+
               SizedBox(height: 55),
-              
+
               SizedBox(
                 width: double.infinity,
                 height: 55,
@@ -217,9 +235,48 @@ class _InterviewSetupState extends State<InterviewSetup> {
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  onPressed: () {
-                    Navigator.push(context, 
-                    MaterialPageRoute(builder: (context)=> InterviewRoom())
+                  onPressed: () async {
+                    final userId = FirebaseAuth.instance.currentUser?.uid;
+                    UserModel? loggedInUser;
+
+                    if (userId != null) {
+                      var doc = await FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(userId)
+                          .get();
+                      if (doc.exists) {
+                        loggedInUser = UserModel.fromMap(doc.data()!);
+                      }
+                    }
+                    print(loggedInUser?.mainGoal);
+
+                    String difficulty = _difficultyValue == 0
+                        ? "Beginner"
+                        : _difficultyValue == 1
+                        ? "Intermediate"
+                        : "Expert";
+
+                    final provider = Provider.of<InterviewProvider>(
+                      context,
+                      listen: false,
+                    );
+
+                    final settings = getSessionSettings();
+
+                    provider.updateSession(
+                      data: widget.interview,
+                      mode: selectedMode,
+                      diff: difficulty,
+                      user: loggedInUser,
+                      duration: settings['time']!,
+                      questionCount: settings['questions']!,
+                    );
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const InterviewRoom(),
+                      ),
                     );
                   },
                   child: Text(

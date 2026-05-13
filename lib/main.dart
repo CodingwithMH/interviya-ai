@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_project/data/providers/interview_provider.dart';
 import 'package:flutter_project/screens/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -9,7 +11,17 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  runApp(const FlutterProject());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => InterviewProvider(
+        interviewData: {},
+        mode: "", 
+        difficulty: "",
+        duration: "",
+        questionCount: ""
+      ),
+    child:const FlutterProject())
+      );
 }
 class FlutterProject extends StatelessWidget {
   const FlutterProject({super.key});

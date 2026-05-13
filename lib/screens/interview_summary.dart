@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_project/data/providers/interview_provider.dart';
 import 'package:flutter_project/screens/interview_setup.dart';
 import 'package:flutter_project/widgets/main_wrapper.dart';
+import 'package:provider/provider.dart';
 
 class InterviewSummaryScreen extends StatefulWidget {
   const InterviewSummaryScreen({super.key});
-
   @override
   State<InterviewSummaryScreen> createState() => _InterviewSummaryScreenState();
 }
@@ -32,6 +33,7 @@ class _InterviewSummaryScreenState extends State<InterviewSummaryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final session = Provider.of<InterviewProvider>(context);
     final displayedQuestions = isExpanded
         ? allQuestions
         : allQuestions.take(2).toList();
@@ -53,7 +55,7 @@ class _InterviewSummaryScreenState extends State<InterviewSummaryScreen> {
           title: Padding(
             padding: EdgeInsets.only(top: 20),
             child: Text(
-              "Interview Summary",
+              "Interview Summary ${session.mode}",
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 24,
@@ -159,7 +161,6 @@ class _InterviewSummaryScreenState extends State<InterviewSummaryScreen> {
               ),
             ),
             SizedBox(height: 40),
-
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -225,7 +226,7 @@ class _InterviewSummaryScreenState extends State<InterviewSummaryScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => InterviewSetup(),
+                          builder: (context) => InterviewSetup(interview: session.interviewData,),
                         ),
                       );
                     },

@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'package:flutter_project/data/providers/interview_provider.dart';
 import 'package:flutter_project/screens/interview_summary.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class InterviewRoom extends StatefulWidget {
   const InterviewRoom({super.key});
@@ -266,8 +268,10 @@ void _goToSummary() {
   Navigator.pushReplacement(
     context,
     MaterialPageRoute(
-      builder: (context) => InterviewSummaryScreen(),
-    ),
+    builder: (context) => ChangeNotifierProvider.value(
+      value: Provider.of<InterviewProvider>(context, listen: false),
+      child: const InterviewSummaryScreen(),
+    ),)
   );
 }
 void _confirmEndSession() {

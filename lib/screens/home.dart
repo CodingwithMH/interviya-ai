@@ -45,12 +45,8 @@ bool isDataLoading = true;
   Future<void> _fetchDatabaseData() async {
   try {
     final firestore = FirebaseFirestore.instance;
-
-    final catSnapshot =
-        await firestore.collection('categories').get();
-
+    final catSnapshot = await firestore.collection('categories').get();
     Map<String, String> tempMap = {};
-
     for (var doc in catSnapshot.docs) {
       tempMap[doc.data()['id']] = doc.data()['name'];
     }
@@ -64,7 +60,9 @@ bool isDataLoading = true;
       Map<String, dynamic> data = doc.data();
 
       return {
+        "id": doc.id,
         "title": data['title'] ?? 'Untitled',
+        "description": data['description'] ?? 'No description available.',
         "cat": tempMap[data['categoryId']] ?? 'General',
         "icon": IconData(
           data['iconCode'] ?? Icons.work.codePoint,
@@ -128,11 +126,7 @@ bool isDataLoading = true;
                   SizedBox(height: 15),
                  
                   ...filteredInterviews.map(
-                    (item) => _buildInterviewCard(
-                      item['title'],
-                      item['icon'],
-                      item['count'],
-                    ),
+                    (item) => _buildInterviewCard(item),
                   ),
                   SizedBox(height: 100),
                 ],
@@ -393,7 +387,7 @@ bool isDataLoading = true;
     );
   }
 
-  Widget _buildInterviewCard(String title, IconData icon, int count) {
+  Widget _buildInterviewCard(Map<String, dynamic> interview) {
     return Container(
       margin: EdgeInsets.only(bottom: 12),
       padding: EdgeInsets.all(12),
@@ -416,18 +410,18 @@ bool isDataLoading = true;
               color: Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: Color(0xFF0A898D), size: 28),
+            child: Icon(interview['icon'], color: Color(0xFF0A898D), size: 28),
           ),
           SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                title,
+                interview['title'],
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
               ),
               Text(
-                "$count Interviews taken",
+                "${interview['count']} Interviews taken",
                 style: TextStyle(color: Colors.grey, fontSize: 12),
               ),
             ],
@@ -437,7 +431,7 @@ bool isDataLoading = true;
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => InterviewSetup()),
+                MaterialPageRoute(builder: (context) => InterviewSetup(interview: interview,)),
               );
             },
             child: Icon(
