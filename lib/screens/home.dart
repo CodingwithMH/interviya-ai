@@ -1,10 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:interviya/data/models/user_model.dart';
-import 'package:interviya/data/services/auth_service.dart';
+import 'package:interviya/data/providers/user_provider.dart';
 import 'package:interviya/screens/interview_setup.dart';
 import 'package:interviya/screens/feedback.dart';
 import 'package:interviya/screens/help.dart';
+import 'package:interviya/screens/upload.dart';
+import 'package:provider/provider.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -16,7 +17,6 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   String searchQuery = "";
   String selectedCategory = "All";
-  // Map<String, String> _categoryMap = {};
   String userName = "User";
   String? profileImage;
   bool isLoading = true;
@@ -27,82 +27,72 @@ bool isDataLoading = true;
   @override
   void initState() {
     super.initState();
-    _loadUserData();
     _fetchDatabaseData();
   }
 
-  Future<void> _loadUserData() async {
-    UserModel? user = await AuthService().getUserData();
-    if (user != null && mounted) {
-      setState(() {
-        userName = user.fullName ?? "User";
-        profileImage = user.avatarPath;
-        isLoading = false;
-      });
-    }
-  }
-
   Future<void> _fetchDatabaseData() async {
-  try {
-    final firestore = FirebaseFirestore.instance;
-    final catSnapshot = await firestore.collection('categories').get();
-    Map<String, String> tempMap = {};
-    for (var doc in catSnapshot.docs) {
-      tempMap[doc.data()['id']] = doc.data()['name'];
-    }
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final catSnapshot = await firestore.collection('categories').get();
+      Map<String, String> tempMap = {};
+      for (var doc in catSnapshot.docs) {
+        tempMap[doc.data()['id']] = doc.data()['name'];
+      }
 
-    final fetchedCats = tempMap.values.toList();
+      final fetchedCats = tempMap.values.toList();
+      final intSnapshot = await firestore.collection('interviews').get();
 
-    final intSnapshot =
-        await firestore.collection('interviews').get();
+      final fetchedInterviews = intSnapshot.docs.map((doc) {
+        Map<String, dynamic> data = doc.data();
 
-    final fetchedInterviews = intSnapshot.docs.map((doc) {
-      Map<String, dynamic> data = doc.data();
+        return {
+          "id": doc.id,
+          "title": data['title'] ?? 'Untitled',
+          "description": data['description'] ?? 'No description available.',
+          "cat": tempMap[data['categoryId']] ?? 'General',
+          "icon": IconData(
+            data['iconCode'] ?? Icons.work.codePoint,
+            fontFamily: 'MaterialIcons',
+          ),
+          "count": data['count'] ?? 0,
+        };
+      }).toList();
 
-      return {
-        "id": doc.id,
-        "title": data['title'] ?? 'Untitled',
-        "description": data['description'] ?? 'No description available.',
-        "cat": tempMap[data['categoryId']] ?? 'General',
-        "icon": IconData(
-          data['iconCode'] ?? Icons.work.codePoint,
-          fontFamily: 'MaterialIcons',
-        ),
-        "count": data['count'] ?? 0,
-      };
-    }).toList();
-
-    if (mounted) {
-      setState(() {
-        // _categoryMap = tempMap;
-        _categories = ["All", ...fetchedCats];
-        _interviews = fetchedInterviews;
-        isDataLoading = false;
-      });
-    }
-  } catch (e) {
-    debugPrint("Error fetching data: $e");
-
-    if (mounted) {
-      setState(() => isDataLoading = false);
+      if (mounted) {
+        setState(() {
+          _categories = ["All", ...fetchedCats];
+          _interviews = fetchedInterviews;
+          isDataLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint("Error fetching data: $e");
+      if (mounted) {
+        setState(() => isDataLoading = false);
+      }
     }
   }
-}
 
   @override
   Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
+    final currentUser = userProvider.currentUser;
+
+    final String displayUserName = currentUser?.fullName ?? "User";
+    final String? displayProfileImage = currentUser?.avatarPath;
+
     List filteredInterviews = _interviews.where((item) {
-    bool matchesSearch = item['title'].toLowerCase().contains(searchQuery.toLowerCase());
-    bool matchesCat = selectedCategory == "All" || item['cat'] == selectedCategory;
-    return matchesSearch && matchesCat;
-  }).toList();
+      bool matchesSearch = item['title'].toLowerCase().contains(searchQuery.toLowerCase());
+      bool matchesCat = selectedCategory == "All" || item['cat'] == selectedCategory;
+      return matchesSearch && matchesCat;
+    }).toList();
 
     return Scaffold(
       backgroundColor: Color(0xFFF8FAFF),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _buildHeader(context),
+            _buildHeader(context, displayUserName, displayProfileImage, currentUser),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(
@@ -138,7 +128,7 @@ bool isDataLoading = true;
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, String userName, String? profileImage, dynamic currentUser) {
     return Stack(
       children: [
         Container(
@@ -170,7 +160,7 @@ bool isDataLoading = true;
                 radius: 25,
                 backgroundColor: Colors.grey.shade200,
                 backgroundImage: profileImage != null 
-                    ? NetworkImage(profileImage!) as ImageProvider
+                    ? NetworkImage(profileImage) as ImageProvider
                     : const AssetImage("assets/images/user.png"),
               ),
               const SizedBox(width: 12),
@@ -207,7 +197,6 @@ bool isDataLoading = true;
 
                 PopupMenuButton<String>(
                   padding: EdgeInsets.zero,
-                  
                   color: Colors.white,
                   elevation: 8,
                   
@@ -220,7 +209,15 @@ bool isDataLoading = true;
                     size: 22,
                   ),
                   onSelected: (value) {
-                    if (value == 'feedback') {
+                    if (value=='upload'){
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Upload(),
+                        ),
+                      );
+                    }
+                    else if (value == 'feedback') {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -235,6 +232,20 @@ bool isDataLoading = true;
                     }
                   },
                   itemBuilder: (context) => [
+                    if (currentUser?.isAdmin ?? false) 
+      const PopupMenuItem(
+        value: 'upload',
+        child: Row(
+          children: [
+            Icon(Icons.cloud_upload_outlined, size: 20, color: Color(0xFF0A898D)),
+            SizedBox(width: 12),
+            Text(
+              'Upload Item',
+              style: TextStyle(color: Color(0xFF1E293B), fontSize: 14),
+            ),
+          ],
+        ),
+      ),
                     PopupMenuItem(
                       value: 'feedback',
                       child: Row(
@@ -290,7 +301,6 @@ bool isDataLoading = true;
           hintText: "Search roles (e.g. Flutter Dev)",
           hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
           prefixIcon: Icon(Icons.search, color: Colors.grey),
-          suffixIcon: Icon(Icons.tune, color: Color(0xFF0A898D)),
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(vertical: 15),
         ),

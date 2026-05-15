@@ -3,7 +3,6 @@ import 'package:interviya/screens/home.dart';
 import 'package:interviya/screens/history.dart';
 import 'package:interviya/screens/stats.dart';
 import 'package:interviya/screens/profile.dart';
-import 'package:interviya/screens/upload.dart';
 
 class MainWrapper extends StatefulWidget {
   const MainWrapper({super.key});
@@ -25,7 +24,6 @@ void initState() {
     History(onBack: navigateToHome),
     Stats(onBack: navigateToHome),
     Profile(onBack: navigateToHome),
-    Upload(onUploadSuccess: navigateToHome),
   ];
 }
 
@@ -76,10 +74,6 @@ void navigateToHome () {
               BottomNavigationBarItem(
                 icon: Icon(Icons.person_rounded),
                 label: 'Profile',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.upload),
-                label: 'Upload',
               ),
             ],
           ),

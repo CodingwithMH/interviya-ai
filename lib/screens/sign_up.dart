@@ -107,11 +107,13 @@ class _SignUpState extends State<SignUp> {
                       icon: Icons.person,
                       controller: username,
                       validator: (value) {
-                        if (value == null ||
-                            value.isEmpty ||
-                            value.length < 3) {
-                          return "Please enter valid username!";
-                        }
+                        if (value == null || value.isEmpty) {
+                          return "Please enter a username!";}
+                        if (value.length < 3) {
+                          return "Username must be at least 3 characters long!";}
+                        final usernameRegex = RegExp(r'^[A-Za-z\d@$!%*#?&^._+-]+$');
+                        if (!usernameRegex.hasMatch(value)) {
+                          return "Must contain letters, numbers, and special characters!";}
                         return null;
                       },
                     ),
@@ -139,14 +141,18 @@ class _SignUpState extends State<SignUp> {
                       icon: Icons.lock,
                       controller: password,
                       suffixIcon: GestureDetector(
-                        onTap: (){setState(() {
-                          obsecure = !obsecure;
-                        });},
-                      child: Icon(
-                        obsecure ? Icons.remove_red_eye_outlined : Icons.visibility_off_outlined,
-                        color: Color(0xff0A898D),
+                        onTap: () {
+                          setState(() {
+                            obsecure = !obsecure;
+                          });
+                        },
+                        child: Icon(
+                          obsecure
+                              ? Icons.remove_red_eye_outlined
+                              : Icons.visibility_off_outlined,
+                          color: Color(0xff0A898D),
+                        ),
                       ),
-                      ), 
                       obscureText: obsecure,
                       validator: (value) {
                         if (value == null || value.length < 6) {

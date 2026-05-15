@@ -96,143 +96,161 @@ class _InterviewRoomState extends State<InterviewRoom>
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-          return SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight),
-              child: IntrinsicHeight(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          IconButton(
-                            onPressed: () => Navigator.pop(context),
-                            icon: Icon(Icons.close, color: Color(0xff94A3B8), size: 28),
-                          ),
-                          Text(
-                            "Question ${currentQuestionIndex + 1} of ${widget.questions.length}",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xff94A3B8),
-                            ),
-                          ),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.timer_outlined,
-                                color: Colors.redAccent,
-                                size: 20,
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 16.0,
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            IconButton(
+                              onPressed: () => Navigator.pop(context),
+                              icon: Icon(
+                                Icons.close,
+                                color: Color(0xff94A3B8),
+                                size: 28,
                               ),
-                              SizedBox(width: 4),
-                              Text(
-                                formatTime(_startSeconds),
-                                style: TextStyle(
+                            ),
+                            Text(
+                              "Question ${currentQuestionIndex + 1} of ${widget.questions.length}",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xff94A3B8),
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.timer_outlined,
                                   color: Colors.redAccent,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
+                                  size: 20,
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  formatTime(_startSeconds),
+                                  style: TextStyle(
+                                    color: Colors.redAccent,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        Spacer(),
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            AnimatedBuilder(
+                              animation: _rotationController,
+                              builder: (context, child) {
+                                return Transform.rotate(
+                                  angle:
+                                      _rotationController.value * 2 * math.pi,
+                                  child: CustomPaint(
+                                    size: Size(220, 220),
+                                    painter: CircleArcs(),
+                                  ),
+                                );
+                              },
+                            ),
+
+                            Container(
+                              height: 130,
+                              width: 130,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Color(0xFF0A898D).withValues(alpha: 0.4),
+                                border: Border.all(
+                                  color: Color(
+                                    0xff0A898D,
+                                  ).withValues(alpha: 0.5),
+                                  width: 2.0,
                                 ),
                               ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      Spacer(),
-                      Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          AnimatedBuilder(
-                            animation: _rotationController,
-                            builder: (context, child) {
-                              return Transform.rotate(
-                                angle: _rotationController.value * 2 * math.pi,
-                                child: CustomPaint(
-                                  size: Size(220, 220),
-                                  painter: CircleArcs(),
-                                ),
-                              );
-                            },
-                          ),
-                
-                          Container(
-                            height: 130,
-                            width: 130,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Color(0xFF0A898D).withValues(alpha: 0.4),
-                              border: Border.all(
-                                color: Color(0xff0A898D).withValues(alpha: 0.5),
-                                width: 2.0,
+                            ),
+                            CircleAvatar(
+                              radius: 50,
+                              backgroundColor: Colors.white,
+                              child: Icon(
+                                Icons.smart_toy_outlined,
+                                size: 60,
+                                color: Color(0xff0A898D),
                               ),
                             ),
-                          ),
-                          CircleAvatar(
-                            radius: 50,
-                            backgroundColor: Colors.white,
-                            child: Icon(
-                              Icons.smart_toy_outlined,
-                              size: 60,
-                              color: Color(0xff0A898D),
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 50),
-                      Text(
-                        widget.questions[currentQuestionIndex],
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 25,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xff1E293B),
-                          height: 1.3,
+                          ],
                         ),
-                      ),
-                      SizedBox(height: 30),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: Color(0xff0A898D).withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        child: Text(
-                          "AI is listening for Keywords",
+                        SizedBox(height: 50),
+                        Text(
+                          widget.questions[currentQuestionIndex],
+                          textAlign: TextAlign.center,
                           style: TextStyle(
-                            color: Color(0xff0A898D).withValues(alpha: 0.8),
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
+                            fontSize: 25,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xff1E293B),
+                            height: 1.3,
                           ),
                         ),
-                      ),
-                      Spacer(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _buildSideAction(
-                            icon: Icons.skip_next_rounded,
-                            label: "Skip Question",
-                            color: Color(0xff94A3B8),
-                            onTap: nextQuestion,
+                        SizedBox(height: 30),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
                           ),
-                          VoiceToText(),
-                          _buildSideAction(
-                            icon: Icons.person_off_rounded,
-                            label: "End Session",
-                            color: Colors.redAccent,
-                            onTap: _confirmEndSession,
+                          decoration: BoxDecoration(
+                            color: Color(0xff0A898D).withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(30),
                           ),
-                        ],
-                      ),
-                      SizedBox(height: 20),
-                    ],
+                          child: Text(
+                            "AI is listening for Keywords",
+                            style: TextStyle(
+                              color: Color(0xff0A898D).withValues(alpha: 0.8),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                        Spacer(),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            Expanded(
+                              child: _buildSideAction(
+                                icon: Icons.skip_next_rounded,
+                                label: "Skip Question",
+                                color: const Color(0xff94A3B8),
+                                onTap: nextQuestion,
+                              ),
+                            ),
+                            // Give the recording component the priority space
+                            const Flexible(flex: 2, child: VoiceToText()),
+                            Expanded(
+                              child: _buildSideAction(
+                                icon: Icons.person_off_rounded,
+                                label: "End Session",
+                                color: Colors.redAccent,
+                                onTap: _confirmEndSession,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 20),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          );
-  }
+            );
+          },
         ),
       ),
     );

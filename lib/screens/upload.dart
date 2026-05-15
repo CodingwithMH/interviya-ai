@@ -1,11 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:interviya/data/models/interview_model.dart';
 import 'package:interviya/data/models/category_model.dart';
 
 class Upload extends StatefulWidget {
-  final VoidCallback onUploadSuccess;
-  const Upload({super.key, required this.onUploadSuccess});
+  const Upload({super.key});
 
   @override
   State<Upload> createState() => _UploadState();
@@ -71,7 +71,7 @@ bool _isLoadingCategories = true;
       _formKey.currentState?.reset();
         _resetForm(); 
 
-    widget.onUploadSuccess(); 
+    Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
@@ -100,7 +100,16 @@ void initState() {
 
 Future<void> _loadCategories() async {
   try {
-    final snapshot = await FirebaseFirestore.instance.collection('categories').get();
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      await currentUser.getIdToken(true); // Force refresh token
+    }
+
+    final snapshot = await FirebaseFirestore.instance
+        .collection('categories')
+        .get()
+        .timeout(const Duration(seconds: 5));
+        
     final docs = snapshot.docs.map((doc) => CategoryModel.fromMap(doc.data())).toList();
     
     setState(() {
@@ -109,7 +118,16 @@ Future<void> _loadCategories() async {
     });
   } catch (e) {
     setState(() => _isLoadingCategories = false);
-    print("Error loading categories: $e");
+    debugPrint("Firestore Error encountered: $e");
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Connection timeout or permissions denied: $e"), 
+          backgroundColor: Colors.red
+        ),
+      );
+    }
   }
 }
 
@@ -136,7 +154,7 @@ Future<void> _loadCategories() async {
             padding: EdgeInsets.only(top:5),
             child: IconButton(
               icon: Icon(Icons.arrow_back, color: Colors.white, size: 35),
-              onPressed: widget.onUploadSuccess,
+              onPressed: ()=>Navigator.pop(context),
             ),
           ),
           title: Padding(
@@ -226,7 +244,7 @@ Future<void> _loadCategories() async {
         _buildTextField(
           label: "Category Name",
           hint: "e.g. System Design",
-          onSaved: (val) {}, // Handled by controller
+          onSaved: (val) {},
           controller: _newCatNameController,
         ),
         const SizedBox(height: 15),

@@ -43,11 +43,11 @@ class CustomDropdownField extends StatelessWidget {
         decoration: InputDecoration(
           hintText: hintText,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           prefixIcon: Icon(
             icon,
             color: const Color(0xff0A898D),
-            size: 28,
+            size: 24,
           ),
         ),
       ),

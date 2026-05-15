@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:interviya/widgets/Experience_setup.dart';
 import 'package:interviya/widgets/goal_setup.dart';
 import 'package:interviya/widgets/profile_setup.dart';
@@ -43,58 +44,58 @@ class _SetupState extends State<Setup> {
       if (currentIndex > 0) {
         currentIndex--;
       } else {
-        Navigator.pop(context);
+        SystemNavigator.pop();
       }
     });
   }
 
   Future<void> _finalizeProfile() async {
-  setState(() => isUploading = true);
+    setState(() => isUploading = true);
 
-  try {
-    if (localImageFile != null) {
-      String? uploadedUrl = await CloudinaryService.uploadImage(
-        localImageFile!,
+    try {
+      if (localImageFile != null) {
+        String? uploadedUrl = await CloudinaryService.uploadImage(
+          localImageFile!,
+        );
+        if (uploadedUrl != null) {
+          user.avatarPath = uploadedUrl;
+        }
+      }
+
+      UserModel finalUser = UserModel(
+        fullName: user.fullName,
+        currentStatus: user.currentStatus,
+        targetRole: user.targetRole,
+        experienceLevel: user.experienceLevel,
+        mainGoal: user.mainGoal,
+        avatarPath: user.avatarPath,
+        hasFinishedSetup: true,
       );
-      if (uploadedUrl != null) {
-        user.avatarPath = uploadedUrl;
+
+      String? result = await AuthService().updateUserProfile(finalUser);
+
+      if (result == "success") {
+        print("Profile successfully updated in Firestore");
+
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const MainWrapper()),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Failed to save profile: $result")),
+          );
+        }
       }
+    } catch (e) {
+      print("Error during finalization: $e");
+    } finally {
+      if (mounted) setState(() => isUploading = false);
     }
-
-    UserModel finalUser = UserModel(
-      fullName: user.fullName,
-      currentStatus: user.currentStatus,
-      targetRole: user.targetRole,
-      experienceLevel: user.experienceLevel,
-      mainGoal: user.mainGoal,
-      avatarPath: user.avatarPath,
-      hasFinishedSetup: true,
-    );
-
-    String? result = await AuthService().updateUserProfile(finalUser);
-
-    if (result == "success") {
-      print("Profile successfully updated in Firestore");
-      
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MainWrapper()),
-        );
-      }
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed to save profile: $result")),
-        );
-      }
-    }
-  } catch (e) {
-    print("Error during finalization: $e");
-  } finally {
-    if (mounted) setState(() => isUploading = false);
   }
-}
 
   Widget getStepComponent() {
     switch (currentIndex) {
@@ -128,11 +129,14 @@ class _SetupState extends State<Setup> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: Color(0xffF8FAFC),
-      body: SafeArea(
-        child: Stack(
-          children: [
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (!isKeyboardOpen)
             Positioned(
               bottom: 0,
               right: 0,
@@ -144,50 +148,68 @@ class _SetupState extends State<Setup> {
                 ),
               ),
             ),
-            Center(
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 40, horizontal: 30),
-                child: Column(
-                  children: [
-                    Text(
-                      "Step ${currentIndex + 1}/3",
-                      style: TextStyle(
-                        color: Color(0xff0A898D),
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
+          SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 40,
+                      horizontal: 30,
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(3, (index) => buildLine(index)),
-                      ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Step ${currentIndex + 1}/3",
+                          style: const TextStyle(
+                            color: Color(0xff0A898D),
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: List.generate(
+                              3,
+                              (index) => buildLine(index),
+                            ),
+                          ),
+                        ),
+                        Text(
+                          stepHeadings[currentIndex],
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 30,
+                            color: Color(0xff1E293B),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 30,
+                        ),
+                        getStepComponent(),
+                      ],
                     ),
-                    Text(
-                      stepHeadings[currentIndex],
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 30,
-                        color: Color(0xff1E293B),
-                      ),
-                    ),
-                    Expanded(child: Center(child: getStepComponent())),
-                  ],
-                ),
+                  ),
+                );
+              },
+            ),
+          ),
+          if (isUploading)
+            Container(
+              color: Colors.black26,
+              child: const Center(
+                child: CircularProgressIndicator(color: Color(0xff0A898D)),
               ),
             ),
-            if (isUploading)
-              Container(
-                color: Colors.black26,
-                child: const Center(
-                  child: CircularProgressIndicator(color: Color(0xff0A898D)),
-                ),
-              ),
-          ],
-        ),
+        ],
       ),
     );
   }

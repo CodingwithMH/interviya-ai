@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:interviya/data/services/auth_service.dart';
 import 'package:interviya/widgets/custom_appbar.dart';
 
 class Profile extends StatefulWidget {
@@ -10,6 +11,27 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
+  bool _isLoggingOut = false;
+
+void _handleLogout() async {
+  setState(() => _isLoggingOut = true);
+  
+  String? result = await AuthService().signOutUser();
+  
+  if (mounted) setState(() => _isLoggingOut = false);
+
+  if (result == "success") {
+    if (mounted) {
+      Navigator.of(context).pushNamedAndRemoveUntil('/signin', (route) => false); 
+    }
+  } else {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Logout failed: $result"), backgroundColor: Colors.redAccent),
+      );
+    }
+  }
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -113,7 +135,6 @@ class _ProfileState extends State<Profile> {
                           "BS Software Engineering",
                         ),
                         _buildDetailRow("Target Role:", "Flutter Developer"),
-                        _buildDetailRow("Location:", "Faisalabad, Pakistan"),
                         _buildDetailRow("Experience Level:", "Beginner"),
                         _buildDetailRow(
                           "Email:",
@@ -219,7 +240,42 @@ class _ProfileState extends State<Profile> {
                 ),
               ),
             ),
-            SizedBox(height: 30),
+            const SizedBox(height: 15),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: SizedBox(
+                width: double.infinity,
+                height: 55, // Premium modern form button height
+                child: ElevatedButton.icon(
+                  onPressed: _isLoggingOut ? null : _handleLogout,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFE2E8F0),
+                    elevation: 0,
+                    shadowColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  icon: _isLoggingOut 
+                      ? const SizedBox(
+                          width: 20, 
+                          height: 20, 
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.redAccent)
+                        )
+                      : const Icon(Icons.logout_rounded, color: Colors.redAccent),
+                  label: Text(
+                    _isLoggingOut ? "Logging out..." : "Log Out",
+                    style: const TextStyle(
+                      color: Colors.redAccent,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 40),
           ],
         ),
       ),

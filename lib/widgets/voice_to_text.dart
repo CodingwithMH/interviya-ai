@@ -137,19 +137,14 @@ class _VoiceToTextState extends State<VoiceToText> {
             ),
           ),
         ),
-        // Simple micro-copy helper so users know how to trigger it
         Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Text(
-            _isRecording ? "Listening..." : "Hold mic to speak",
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 14, 
-              fontWeight: FontWeight.w500,
-              color: Color(0xff94A3B8),
-            ),
-          ),
-        ),
+  padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 4.0),
+  child: Text(
+    _isRecording ? "Listening..." : "Hold to speak",
+    textAlign: TextAlign.center,
+    style: const TextStyle(fontSize: 12),
+  ),
+)
       ],
     );
   }

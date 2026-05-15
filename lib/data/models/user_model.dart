@@ -6,6 +6,7 @@ class UserModel {
   String? mainGoal;
   String? avatarPath;
   bool? hasFinishedSetup;
+  String? role;
 
   UserModel({
     this.fullName,
@@ -14,8 +15,11 @@ class UserModel {
     this.experienceLevel,
     this.mainGoal,
     this.avatarPath,
-    this.hasFinishedSetup
+    this.hasFinishedSetup,
+    this.role
   });
+
+bool get isAdmin => role == 'admin';
 
 factory UserModel.fromMap(Map<String, dynamic> map) {
     return UserModel(
@@ -26,6 +30,7 @@ factory UserModel.fromMap(Map<String, dynamic> map) {
       mainGoal: map['mainGoal'],
       avatarPath: map['avatarPath'],
       hasFinishedSetup: map['hasFinishedSetup'] ?? false,
+      role: map['role'] ?? 'user'
     );
   }
   Map<String, dynamic> toMap() {
@@ -37,6 +42,7 @@ factory UserModel.fromMap(Map<String, dynamic> map) {
       'mainGoal': mainGoal,
       'avatarPath': avatarPath,
       'hasFinishedSetup': hasFinishedSetup ?? false,
+      'role': role ?? 'user',
       'createdAt': DateTime.now().toIso8601String(),
     };
 }

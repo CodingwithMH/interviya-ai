@@ -6,6 +6,8 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+Stream<User?> get authStateChanges => _auth.authStateChanges();
+
   Future<String?> signUpUser({
     required String email,
     required String password,
@@ -22,6 +24,7 @@ class AuthService {
         'email': email.trim(),
         'uid': userCredential.user!.uid,
         'hasFinishedSetup': false,
+        'role': 'user',
         'createdAt': DateTime.now(),
       });
 
@@ -75,6 +78,17 @@ class AuthService {
       );
 
       return "success";
+    } catch (e) {
+      return e.toString();
+    }
+  }
+  
+  Future<String?> signOutUser() async {
+    try {
+      await _auth.signOut();
+      return "success";
+    } on FirebaseAuthException catch (e) {
+      return e.message;
     } catch (e) {
       return e.toString();
     }
