@@ -37,7 +37,7 @@ factory UserModel.fromMap(Map<String, dynamic> map) {
       'mainGoal': mainGoal,
       'avatarPath': avatarPath,
       'hasFinishedSetup': hasFinishedSetup ?? false,
-      'createdAt': DateTime.now(),
+      'createdAt': DateTime.now().toIso8601String(),
     };
 }
 }

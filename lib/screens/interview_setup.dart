@@ -4,7 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_project/data/models/user_model.dart';
 import 'package:flutter_project/data/providers/interview_provider.dart';
 import 'package:flutter_project/screens/interview_room.dart';
+import 'package:flutter_project/widgets/mode_card.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class InterviewSetup extends StatefulWidget {
   final Map<String, dynamic> interview;
@@ -116,10 +119,10 @@ class _InterviewSetupState extends State<InterviewSetup> {
                   Expanded(
                     child: GestureDetector(
                       onTap: () => setState(() => selectedMode = "Full Mock"),
-                      child: modeCard(
-                        "Full Mock\nInterview",
-                        Icons.emoji_events_outlined,
-                        selectedMode == "Full Mock",
+                      child: ModeCard(
+                        title: "Full Mock\nInterview",
+                        icon: Icons.emoji_events_outlined,
+                        isSelected: selectedMode == "Full Mock",
                       ),
                     ),
                   ),
@@ -128,10 +131,10 @@ class _InterviewSetupState extends State<InterviewSetup> {
                     child: GestureDetector(
                       onTap: () =>
                           setState(() => selectedMode = "Focused Practice"),
-                      child: modeCard(
-                        "Focused\nPractice",
-                        Icons.track_changes,
-                        selectedMode == "Focused Practice",
+                      child: ModeCard(
+                        title: "Focused\nPractice",
+                        icon: Icons.track_changes,
+                        isSelected: selectedMode == "Focused Practice",
                       ),
                     ),
                   ),
@@ -236,6 +239,16 @@ class _InterviewSetupState extends State<InterviewSetup> {
                     ),
                   ),
                   onPressed: () async {
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) => const Center(
+                        child: CircularProgressIndicator(
+                          color: Color(0xFF0A898D),
+                        ),
+                      ),
+                    );
+
                     final userId = FirebaseAuth.instance.currentUser?.uid;
                     UserModel? loggedInUser;
 
@@ -248,7 +261,6 @@ class _InterviewSetupState extends State<InterviewSetup> {
                         loggedInUser = UserModel.fromMap(doc.data()!);
                       }
                     }
-                    print(loggedInUser?.mainGoal);
 
                     String difficulty = _difficultyValue == 0
                         ? "Beginner"
@@ -262,7 +274,56 @@ class _InterviewSetupState extends State<InterviewSetup> {
                     );
 
                     final settings = getSessionSettings();
+                    List<String> fetchedQuestions = [];
 
+                    try {
+                      // Note: Use 10.0.2.2 instead of localhost if using an Android Emulator
+                      var url = Uri.parse(
+                        'http://127.0.0.1:5000/get-questions',
+                      );
+                      Map<String, dynamic> cleanInterviewData = {
+                        "title": widget.interview['title'],
+                        "categoryId": widget.interview['categoryId'],
+                        "description": widget.interview['description'],
+                      };
+
+                      var response = await http
+                          .post(
+                            url,
+                            headers: {"Content-Type": "application/json"},
+                            body: jsonEncode({
+                              "interviewData": cleanInterviewData,
+                              "mode": selectedMode,
+                              "difficulty": difficulty,
+                              "duration": settings['time'],
+                              "questionCount": settings['questions'],
+                              "user": loggedInUser?.toMap(),
+                            }),
+                          )
+                          .timeout(const Duration(seconds: 30));
+
+                      if (response.statusCode == 200) {
+                        var decodedData = jsonDecode(response.body);
+                        List<dynamic> questionsRaw = decodedData['questions'];
+
+                        setState(() {
+                          fetchedQuestions = questionsRaw
+                              .map((item) => item['question'].toString())
+                              .toList();
+                        });
+                        Navigator.pop(context);
+                      } else {
+                        print("Server Error: ${response.statusCode}");
+                        Navigator.pop(context);
+                        return;
+                      }
+                    } catch (e) {
+                      print("Connection Error: $e");
+                      Navigator.pop(context);
+                      return;
+                    } finally {
+                      Navigator.of(context, rootNavigator: true).pop();
+                    }
                     provider.updateSession(
                       data: widget.interview,
                       mode: selectedMode,
@@ -271,11 +332,11 @@ class _InterviewSetupState extends State<InterviewSetup> {
                       duration: settings['time']!,
                       questionCount: settings['questions']!,
                     );
-
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const InterviewRoom(),
+                        builder: (context) =>
+                            InterviewRoom(questions: fetchedQuestions, duration: settings["time"]),
                       ),
                     );
                   },
@@ -288,46 +349,6 @@ class _InterviewSetupState extends State<InterviewSetup> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget modeCard(String title, IconData icon, bool isSelected) {
-    return Container(
-      height: 140,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(
-          color: isSelected ? Color(0xFF0A898D) : Colors.transparent,
-          width: 2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0xff1E293B).withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 40,
-            color: isSelected ? Color(0xFF0A898D) : Colors.grey,
-          ),
-          SizedBox(height: 10),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: isSelected ? Color(0xFF0A898D) : Colors.grey,
-            ),
-          ),
-        ],
       ),
     );
   }

@@ -147,7 +147,7 @@ class _SignInState extends State<SignIn> {
                       onPressed: isLoading ? null : handleSignIn,
                       style: ElevatedButton.styleFrom(
                         elevation: 8,
-                        padding: EdgeInsets.symmetric(vertical: 14),
+                        padding: EdgeInsets.symmetric(vertical: 12),
                         backgroundColor: Color(0xff0A898D),
                         foregroundColor: Colors.white,
                       ),
@@ -168,7 +168,7 @@ class _SignInState extends State<SignIn> {
                     ElevatedButton.icon(
                       onPressed: () {},
                       style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 14),
+                        padding: EdgeInsets.symmetric(vertical: 12),
                         backgroundColor: Colors.white,
                       ),
                       icon: Image.asset(

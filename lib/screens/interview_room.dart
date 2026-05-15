@@ -3,10 +3,17 @@ import 'dart:math' as math;
 import 'package:flutter_project/data/providers/interview_provider.dart';
 import 'package:flutter_project/screens/interview_summary.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_project/widgets/circle_arcs.dart';
 import 'package:provider/provider.dart';
 
 class InterviewRoom extends StatefulWidget {
-  const InterviewRoom({super.key});
+  final List<String> questions;
+  final String? duration;
+  const InterviewRoom({
+    super.key,
+    required this.questions,
+    required this.duration,
+  });
 
   @override
   State<InterviewRoom> createState() => _InterviewRoomState();
@@ -19,22 +26,20 @@ class _InterviewRoomState extends State<InterviewRoom>
   int _startSeconds = 100;
   late AnimationController _rotationController;
 
-  final List<String> questions = [
-    "Can you explain the difference between a State and a Widget in Flutter?",
-    "What is the difference between Hot Reload and Hot Restart?",
-    "Explain the lifecycle of a StatefulWidget.",
-    "What are Keys in Flutter and why are they important?",
-    "How does InheritedWidget work?",
-    "What is the difference between main() and runApp()?",
-    "Can you explain what a Future is in Dart?",
-    "What is the purpose of a Scaffold widget?",
-    "How do you handle state management in large apps?",
-    "What are streams and how do they differ from futures?",
-  ];
+  int get totalSeconds {
+    int minutes = int.tryParse(widget.duration ?? '0') ?? 0;
+    return minutes * 60;
+  }
+
+  int get secondsPerQuestion {
+    if (widget.questions.isEmpty || totalSeconds == 0) return 60;
+    return totalSeconds ~/ widget.questions.length;
+  }
 
   @override
   void initState() {
     super.initState();
+    _startSeconds = secondsPerQuestion;
     startTimer();
 
     _rotationController = AnimationController(
@@ -43,36 +48,38 @@ class _InterviewRoomState extends State<InterviewRoom>
     )..repeat();
   }
 
- void startTimer() {
-  _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-    if (_startSeconds == 0) {
-      _timer?.cancel();
-      _goToSummary(); 
-    } else {
-      setState(() {
-        _startSeconds--;
-      });
-    }
-  });
-}
-
   String formatTime(int seconds) {
     int minutes = seconds ~/ 60;
     int remainingSeconds = seconds % 60;
     return "${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}";
   }
 
-  void nextQuestion() {
-  if (currentQuestionIndex < questions.length - 1) {
-    setState(() {
-      currentQuestionIndex++;
+  void startTimer() {
+    _timer?.cancel();
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (_startSeconds <= 0) {
+        // Time for this question is up!
+        nextQuestion();
+      } else {
+        setState(() {
+          _startSeconds--;
+        });
+      }
     });
-  } else {
-    _goToSummary(); 
   }
-}
 
-  
+  void nextQuestion() {
+    if (currentQuestionIndex < widget.questions.length - 1) {
+      setState(() {
+        currentQuestionIndex++;
+        // Reset timer to the per-question limit
+        _startSeconds = secondsPerQuestion;
+      });
+    } else {
+      _timer?.cancel();
+      _goToSummary();
+    }
+  }
 
   @override
   void dispose() {
@@ -98,7 +105,7 @@ class _InterviewRoomState extends State<InterviewRoom>
                     icon: Icon(Icons.close, color: Color(0xff94A3B8), size: 28),
                   ),
                   Text(
-                    "Question ${currentQuestionIndex + 1} of ${questions.length}",
+                    "Question ${currentQuestionIndex + 1} of ${widget.questions.length}",
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -125,9 +132,7 @@ class _InterviewRoomState extends State<InterviewRoom>
                   ),
                 ],
               ),
-
               Spacer(),
-
               Stack(
                 alignment: Alignment.center,
                 children: [
@@ -138,7 +143,7 @@ class _InterviewRoomState extends State<InterviewRoom>
                         angle: _rotationController.value * 2 * math.pi,
                         child: CustomPaint(
                           size: Size(220, 220),
-                          painter: CircleArcsPainter(),
+                          painter: CircleArcs(),
                         ),
                       );
                     },
@@ -172,7 +177,7 @@ class _InterviewRoomState extends State<InterviewRoom>
               SizedBox(height: 50),
 
               Text(
-                questions[currentQuestionIndex],
+                widget.questions[currentQuestionIndex],
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 32,
@@ -214,30 +219,40 @@ class _InterviewRoomState extends State<InterviewRoom>
 
                   Column(
                     children: [
-                      Container(
-                        height: 85,
-                        width: 85,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [Color(0xff0A898D), Color(0xff0CBABF)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Color(0xff0A898D).withValues(alpha: 0.35),
-                              blurRadius: 20,
-                              spreadRadius: 4,
-                              offset: Offset(0, 8),
+                      GestureDetector(
+                        onLongPressStart: (_) {
+                          print("AI is listening...");
+                        },
+                        onLongPressEnd: (_) {
+                          print("AI stopped listening.");
+                        },
+                        child: Container(
+                          height: 85,
+                          width: 85,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [Color(0xff0A898D), Color(0xff0CBABF)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
-                          ],
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color(
+                                  0xff0A898D,
+                                ).withValues(alpha: 0.35),
+                                blurRadius: 20,
+                                spreadRadius: 4,
+                                offset: Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: Icon(Icons.mic, color: Colors.white, size: 42),
                         ),
-                        child: Icon(Icons.mic, color: Colors.white, size: 42),
                       ),
                       SizedBox(height: 12),
                       Text(
-                        "Tap to Speak",
+                        "hold to Speak",
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Color(0xff1E293B),
@@ -262,45 +277,47 @@ class _InterviewRoomState extends State<InterviewRoom>
       ),
     );
   }
-void _goToSummary() {
-  _timer?.cancel();
 
-  Navigator.pushReplacement(
-    context,
-    MaterialPageRoute(
-    builder: (context) => ChangeNotifierProvider.value(
-      value: Provider.of<InterviewProvider>(context, listen: false),
-      child: const InterviewSummaryScreen(),
-    ),)
-  );
-}
-void _confirmEndSession() {
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (context) => AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: Text("End Interview?"),
-      content: Text("Are you sure you want to end this session?"),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text("Cancel"),
+  void _goToSummary() {
+    _timer?.cancel();
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChangeNotifierProvider.value(
+          value: Provider.of<InterviewProvider>(context, listen: false),
+          child: const InterviewSummaryScreen(),
         ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Color(0xff0A898D),
+      ),
+    );
+  }
+
+  void _confirmEndSession() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text("End Interview?"),
+        content: Text("Are you sure you want to end this session?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Cancel"),
           ),
-          onPressed: () {
-            Navigator.pop(context);
-            _goToSummary();
-          },
-          child: Text("Confirm"),
-        ),
-      ],
-    ),
-  );
-}
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Color(0xff0A898D)),
+            onPressed: () {
+              Navigator.pop(context);
+              _goToSummary();
+            },
+            child: Text("Confirm"),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSideAction({
     required IconData icon,
     required String label,
@@ -329,42 +346,4 @@ void _confirmEndSession() {
       ),
     );
   }
-}
-
-class CircleArcsPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-
-    final paint = Paint()
-      ..color = Color(0xff0A898D)
-      ..strokeWidth = 8
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: size.width / 2 - 20),
-      0,
-      math.pi * 1,
-      false,
-      paint,
-    );
-
-    final innerPaint = Paint()
-      ..color = Color(0xff0A898D)
-      ..strokeWidth = 6
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: size.width / 2 - 33),
-      math.pi * 0.9,
-      math.pi * 1.2,
-      false,
-      innerPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => true;
 }
