@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_project/data/models/category_model.dart';
+import 'package:interviya/data/models/category_model.dart';
 
 class InterviewModel {
   String title;

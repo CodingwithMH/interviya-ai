@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_project/widgets/next_previous.dart';
+import 'package:interviya/widgets/next_previous.dart';
 
 class ExperienceSetup extends StatefulWidget {
   final Function(String) onUpdate;

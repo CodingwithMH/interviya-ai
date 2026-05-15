@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:interviya/widgets/custom_appbar.dart';
 
 class Profile extends StatefulWidget {
   final VoidCallback onBack;
@@ -13,34 +14,7 @@ class _ProfileState extends State<Profile> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFF8FAFF),
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(60),
-        child: AppBar(
-          backgroundColor: Color(0xFF0A898D),
-          elevation: 0,
-          leading: Padding(
-            padding: EdgeInsets.only(top:5),
-            child: IconButton(
-              icon: Icon(Icons.arrow_back, color: Colors.white, size: 35),
-              onPressed: widget.onBack,
-            ),
-          ),
-          title: Padding(
-            padding: EdgeInsets.only(top: 5),
-            child: Text(
-              "Profile",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(bottom: Radius.circular(25)),
-          ),
-        ),
-      ),
+      appBar: CustomAppbar(text:"Profile", onBack: widget.onBack),
       body: SingleChildScrollView(
         child: Column(
           children: [

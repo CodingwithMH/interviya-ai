@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_project/data/models/user_model.dart';
-import 'package:flutter_project/data/services/auth_service.dart';
-import 'package:flutter_project/screens/interview_setup.dart';
-import 'package:flutter_project/screens/feedback.dart';
-import 'package:flutter_project/screens/help.dart';
+import 'package:interviya/data/models/user_model.dart';
+import 'package:interviya/data/services/auth_service.dart';
+import 'package:interviya/screens/interview_setup.dart';
+import 'package:interviya/screens/feedback.dart';
+import 'package:interviya/screens/help.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});

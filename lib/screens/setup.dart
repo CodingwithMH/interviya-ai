@@ -1,15 +1,15 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_project/widgets/Experience_setup.dart';
-import 'package:flutter_project/widgets/goal_setup.dart';
-import 'package:flutter_project/widgets/profile_setup.dart';
+import 'package:interviya/widgets/Experience_setup.dart';
+import 'package:interviya/widgets/goal_setup.dart';
+import 'package:interviya/widgets/profile_setup.dart';
 import "dart:math" as math;
 
-import 'package:flutter_project/data/models/user_model.dart';
-import 'package:flutter_project/data/services/auth_service.dart';
-import 'package:flutter_project/data/services/cloudinary_service.dart';
-import 'package:flutter_project/widgets/main_wrapper.dart';
+import 'package:interviya/data/models/user_model.dart';
+import 'package:interviya/data/services/auth_service.dart';
+import 'package:interviya/data/services/cloudinary_service.dart';
+import 'package:interviya/widgets/main_wrapper.dart';
 
 class Setup extends StatefulWidget {
   const Setup({super.key});

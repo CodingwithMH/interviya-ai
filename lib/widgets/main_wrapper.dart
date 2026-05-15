@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_project/screens/home.dart';
-import 'package:flutter_project/screens/history.dart';
-import 'package:flutter_project/screens/stats.dart';
-import 'package:flutter_project/screens/profile.dart';
-import 'package:flutter_project/screens/upload.dart';
+import 'package:interviya/screens/home.dart';
+import 'package:interviya/screens/history.dart';
+import 'package:interviya/screens/stats.dart';
+import 'package:interviya/screens/profile.dart';
+import 'package:interviya/screens/upload.dart';
 
 class MainWrapper extends StatefulWidget {
   const MainWrapper({super.key});

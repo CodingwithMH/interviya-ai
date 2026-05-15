@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_project/data/models/user_model.dart';
+import 'package:interviya/data/models/user_model.dart';
 
 class InterviewProvider extends ChangeNotifier {
   Map<String, dynamic> interviewData;
@@ -8,6 +8,10 @@ class InterviewProvider extends ChangeNotifier {
   UserModel? currentUser;
   String duration;
   String questionCount;
+  
+  List<String> questions = [];
+  List<String> answers = [];
+  int currentQuestionIndex = 0;
 
   InterviewProvider({
     required this.interviewData,
@@ -18,7 +22,51 @@ class InterviewProvider extends ChangeNotifier {
     required this.duration,
   });
 
-  void updateSession({required Map<String, dynamic> data, required String mode, required String diff, UserModel? user, required String duration, required String questionCount}) {
+  void setQuestions(List<String> generatedQuestions) {
+    questions = generatedQuestions;
+    currentQuestionIndex = 0;
+    answers = List<String>.filled(generatedQuestions.length, ""); 
+    
+    notifyListeners();
+  }
+
+  void updateCurrentAnswer(String transcribedText) {
+    if (questions.isEmpty) return;
+    
+    answers[currentQuestionIndex] = transcribedText;
+    notifyListeners(); 
+  }
+
+  void nextQuestion() {
+    if (currentQuestionIndex < questions.length - 1) {
+      currentQuestionIndex++;
+      notifyListeners();
+    }
+  }
+
+  void previousQuestion() {
+    if (currentQuestionIndex > 0) {
+      currentQuestionIndex--;
+      notifyListeners();
+    }
+  }
+
+  String get currentQuestionText => 
+      questions.isNotEmpty ? questions[currentQuestionIndex] : "";
+
+  String get currentAnswerText {
+    if (answers.isEmpty || currentQuestionIndex >= answers.length) return "";
+    return answers[currentQuestionIndex];
+  }
+
+  void updateSession({
+    required Map<String, dynamic> data, 
+    required String mode, 
+    required String diff, 
+    UserModel? user, 
+    required String duration, 
+    required String questionCount,
+  }) {
     this.interviewData = data;
     this.mode = mode;
     this.difficulty = diff;

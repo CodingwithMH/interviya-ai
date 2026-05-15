@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'package:flutter_project/data/providers/interview_provider.dart';
-import 'package:flutter_project/screens/interview_summary.dart';
+import 'package:interviya/data/providers/interview_provider.dart';
+import 'package:interviya/screens/interview_summary.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_project/widgets/circle_arcs.dart';
+import 'package:interviya/widgets/circle_arcs.dart';
+import 'package:interviya/widgets/voice_to_text.dart';
 import 'package:provider/provider.dart';
 
 class InterviewRoom extends StatefulWidget {
@@ -93,186 +94,145 @@ class _InterviewRoomState extends State<InterviewRoom>
     return Scaffold(
       backgroundColor: Color(0xFFF8FAFF),
       body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: Icon(Icons.close, color: Color(0xff94A3B8), size: 28),
-                  ),
-                  Text(
-                    "Question ${currentQuestionIndex + 1} of ${widget.questions.length}",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xff94A3B8),
-                    ),
-                  ),
-                  Row(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+          return SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: IntrinsicHeight(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                  child: Column(
                     children: [
-                      Icon(
-                        Icons.timer_outlined,
-                        color: Colors.redAccent,
-                        size: 20,
-                      ),
-                      SizedBox(width: 4),
-                      Text(
-                        formatTime(_startSeconds),
-                        style: TextStyle(
-                          color: Colors.redAccent,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              Spacer(),
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  AnimatedBuilder(
-                    animation: _rotationController,
-                    builder: (context, child) {
-                      return Transform.rotate(
-                        angle: _rotationController.value * 2 * math.pi,
-                        child: CustomPaint(
-                          size: Size(220, 220),
-                          painter: CircleArcs(),
-                        ),
-                      );
-                    },
-                  ),
-
-                  Container(
-                    height: 130,
-                    width: 130,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Color(0xFF0A898D).withValues(alpha: 0.4),
-                      border: Border.all(
-                        color: Color(0xff0A898D).withValues(alpha: 0.5),
-                        width: 2.0,
-                      ),
-                    ),
-                  ),
-
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Colors.white,
-                    child: Icon(
-                      Icons.smart_toy_outlined,
-                      size: 60,
-                      color: Color(0xff0A898D),
-                    ),
-                  ),
-                ],
-              ),
-
-              SizedBox(height: 50),
-
-              Text(
-                widget.questions[currentQuestionIndex],
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xff1E293B),
-                  height: 1.3,
-                ),
-              ),
-
-              SizedBox(height: 30),
-
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                decoration: BoxDecoration(
-                  color: Color(0xff0A898D).withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                child: Text(
-                  "AI is listening for Keywords",
-                  style: TextStyle(
-                    color: Color(0xff0A898D).withValues(alpha: 0.8),
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-
-              Spacer(),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildSideAction(
-                    icon: Icons.skip_next_rounded,
-                    label: "Skip Question",
-                    color: Color(0xff94A3B8),
-                    onTap: nextQuestion,
-                  ),
-
-                  Column(
-                    children: [
-                      GestureDetector(
-                        onLongPressStart: (_) {
-                          print("AI is listening...");
-                        },
-                        onLongPressEnd: (_) {
-                          print("AI stopped listening.");
-                        },
-                        child: Container(
-                          height: 85,
-                          width: 85,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: [Color(0xff0A898D), Color(0xff0CBABF)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            onPressed: () => Navigator.pop(context),
+                            icon: Icon(Icons.close, color: Color(0xff94A3B8), size: 28),
+                          ),
+                          Text(
+                            "Question ${currentQuestionIndex + 1} of ${widget.questions.length}",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xff94A3B8),
                             ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Color(
-                                  0xff0A898D,
-                                ).withValues(alpha: 0.35),
-                                blurRadius: 20,
-                                spreadRadius: 4,
-                                offset: Offset(0, 8),
+                          ),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.timer_outlined,
+                                color: Colors.redAccent,
+                                size: 20,
+                              ),
+                              SizedBox(width: 4),
+                              Text(
+                                formatTime(_startSeconds),
+                                style: TextStyle(
+                                  color: Colors.redAccent,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
                               ),
                             ],
                           ),
-                          child: Icon(Icons.mic, color: Colors.white, size: 42),
-                        ),
+                        ],
                       ),
-                      SizedBox(height: 12),
+                      Spacer(),
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          AnimatedBuilder(
+                            animation: _rotationController,
+                            builder: (context, child) {
+                              return Transform.rotate(
+                                angle: _rotationController.value * 2 * math.pi,
+                                child: CustomPaint(
+                                  size: Size(220, 220),
+                                  painter: CircleArcs(),
+                                ),
+                              );
+                            },
+                          ),
+                
+                          Container(
+                            height: 130,
+                            width: 130,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Color(0xFF0A898D).withValues(alpha: 0.4),
+                              border: Border.all(
+                                color: Color(0xff0A898D).withValues(alpha: 0.5),
+                                width: 2.0,
+                              ),
+                            ),
+                          ),
+                          CircleAvatar(
+                            radius: 50,
+                            backgroundColor: Colors.white,
+                            child: Icon(
+                              Icons.smart_toy_outlined,
+                              size: 60,
+                              color: Color(0xff0A898D),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 50),
                       Text(
-                        "hold to Speak",
+                        widget.questions[currentQuestionIndex],
+                        textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontWeight: FontWeight.bold,
+                          fontSize: 25,
+                          fontWeight: FontWeight.w800,
                           color: Color(0xff1E293B),
-                          fontSize: 15,
+                          height: 1.3,
                         ),
                       ),
+                      SizedBox(height: 30),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Color(0xff0A898D).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: Text(
+                          "AI is listening for Keywords",
+                          style: TextStyle(
+                            color: Color(0xff0A898D).withValues(alpha: 0.8),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      Spacer(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _buildSideAction(
+                            icon: Icons.skip_next_rounded,
+                            label: "Skip Question",
+                            color: Color(0xff94A3B8),
+                            onTap: nextQuestion,
+                          ),
+                          VoiceToText(),
+                          _buildSideAction(
+                            icon: Icons.person_off_rounded,
+                            label: "End Session",
+                            color: Colors.redAccent,
+                            onTap: _confirmEndSession,
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 20),
                     ],
                   ),
-
-                  _buildSideAction(
-                    icon: Icons.person_off_rounded,
-                    label: "End Session",
-                    color: Colors.redAccent,
-                    onTap: _confirmEndSession,
-                  ),
-                ],
+                ),
               ),
-              SizedBox(height: 20),
-            ],
-          ),
+            ),
+          );
+  }
         ),
       ),
     );

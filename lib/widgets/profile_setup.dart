@@ -1,11 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_project/widgets/next_previous.dart';
-import 'package:flutter_project/data/models/user_model.dart';
-import 'package:flutter_project/widgets/custom_dropdown_field.dart';
-import 'package:flutter_project/widgets/custom_text_field.dart';
-import 'package:flutter_project/widgets/upload_avatar.dart';
+import 'package:interviya/widgets/next_previous.dart';
+import 'package:interviya/data/models/user_model.dart';
+import 'package:interviya/widgets/custom_dropdown_field.dart';
+import 'package:interviya/widgets/custom_text_field.dart';
+import 'package:interviya/widgets/upload_avatar.dart';
 
 class ProfileSetup extends StatefulWidget {
   final Function(UserModel) onUpdate;

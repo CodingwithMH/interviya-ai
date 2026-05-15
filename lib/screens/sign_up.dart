@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_project/data/services/auth_service.dart';
-import 'package:flutter_project/screens/sign_in.dart';
-import 'package:flutter_project/widgets/custom_text_field.dart';
+import 'package:interviya/data/services/auth_service.dart';
+import 'package:interviya/screens/sign_in.dart';
+import 'package:interviya/widgets/custom_text_field.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});

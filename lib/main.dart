@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_project/data/providers/interview_provider.dart';
-import 'package:flutter_project/screens/splash_screen.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:interviya/data/providers/interview_provider.dart';
+import 'package:interviya/screens/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
@@ -10,6 +11,7 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await dotenv.load(fileName: ".env");
 
   runApp(
     ChangeNotifierProvider(

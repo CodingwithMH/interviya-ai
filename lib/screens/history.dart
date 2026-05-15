@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:interviya/widgets/custom_appbar.dart';
 
 class History extends StatefulWidget {
   final VoidCallback onBack;
@@ -134,34 +135,7 @@ class _HistoryState extends State<History> {
 
     return Scaffold(
       backgroundColor: Color(0xFFF8FAFF),
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(60),
-        child: AppBar(
-          backgroundColor: Color(0xFF0A898D),
-          elevation: 0,
-          leading: Padding(
-            padding: EdgeInsets.only(top:5),
-            child: IconButton(
-              icon: Icon(Icons.arrow_back, color: Colors.white, size: 35),
-              onPressed: widget.onBack,
-            ),
-          ),
-          title: Padding(
-            padding: EdgeInsets.only(top: 5),
-            child: Text(
-              "History",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(bottom: Radius.circular(25)),
-          ),
-        ),
-      ),
+      appBar: CustomAppbar(text:"History", onBack: widget.onBack),
 
       body: ScrollConfiguration(
         behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),

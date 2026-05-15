@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_project/data/models/interview_model.dart';
-import 'package:flutter_project/data/models/category_model.dart';
+import 'package:interviya/data/models/interview_model.dart';
+import 'package:interviya/data/models/category_model.dart';
 
 class Upload extends StatefulWidget {
   final VoidCallback onUploadSuccess;

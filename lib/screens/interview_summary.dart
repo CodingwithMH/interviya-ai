@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_project/data/providers/interview_provider.dart';
-import 'package:flutter_project/screens/interview_setup.dart';
-import 'package:flutter_project/widgets/main_wrapper.dart';
+import 'package:interviya/data/providers/interview_provider.dart';
+import 'package:interviya/screens/interview_setup.dart';
+import 'package:interviya/widgets/custom_appbar.dart';
+import 'package:interviya/widgets/main_wrapper.dart';
 import 'package:provider/provider.dart';
 
 class InterviewSummaryScreen extends StatefulWidget {
@@ -40,34 +41,7 @@ class _InterviewSummaryScreenState extends State<InterviewSummaryScreen> {
 
     return Scaffold(
       backgroundColor: Color(0xFFF8FAFF),
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(80),
-        child: AppBar(
-          backgroundColor: Color(0xFF0A898D),
-          elevation: 0,
-          leading: Padding(
-            padding: EdgeInsets.only(top: 10),
-            child: IconButton(
-              icon: Icon(Icons.arrow_back, color: Colors.white, size: 35),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-          title: Padding(
-            padding: EdgeInsets.only(top: 20),
-            child: Text(
-              "Interview Summary ${session.mode}",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(bottom: Radius.circular(25)),
-          ),
-        ),
-      ),
+      appBar: CustomAppbar(text:"Interview Summary", onBack: () => Navigator.pop(context)),
 
       body: SingleChildScrollView(
         padding: EdgeInsets.all(20.0),

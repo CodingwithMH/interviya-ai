@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_project/data/models/user_model.dart';
-import 'package:flutter_project/data/services/auth_service.dart';
-import 'package:flutter_project/screens/setup.dart';
-import 'package:flutter_project/screens/sign_up.dart';
-import 'package:flutter_project/widgets/custom_text_field.dart';
-import 'package:flutter_project/widgets/main_wrapper.dart';
+import 'package:interviya/data/models/user_model.dart';
+import 'package:interviya/data/services/auth_service.dart';
+import 'package:interviya/screens/setup.dart';
+import 'package:interviya/screens/sign_up.dart';
+import 'package:interviya/widgets/custom_text_field.dart';
+import 'package:interviya/widgets/main_wrapper.dart';
 
 class SignIn extends StatefulWidget {
   const SignIn({super.key});

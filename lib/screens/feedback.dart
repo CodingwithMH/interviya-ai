@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:interviya/widgets/custom_appbar.dart';
 
 class FeedbackScreen extends StatefulWidget {
   const FeedbackScreen({super.key});
@@ -32,35 +33,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
 
     return Scaffold(
       backgroundColor: Color(0xFFF8FAFF),
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(60),
-        child: AppBar(
-          backgroundColor: Color(0xFF0A898D),
-          elevation: 0,
-          leading: Padding(
-            padding: EdgeInsets.only(top: 5),
-            child: IconButton(
-              icon: Icon(Icons.arrow_back, color: Colors.white, size: 35),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-          title: Padding(
-            padding: EdgeInsets.only(top: 5),
-            child: Text(
-              "Feedback",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(bottom: Radius.circular(25)),
-          ),
-        ),
-      ),
-
+      appBar: CustomAppbar(text:"Setup Interview", onBack: () => Navigator.pop(context)),
       body: SingleChildScrollView(
         physics: BouncingScrollPhysics(),
         child: Padding(

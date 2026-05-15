@@ -1,4 +1,4 @@
-import 'package:flutter_project/screens/sign_up.dart';
+import 'package:interviya/screens/sign_up.dart';
 import 'package:flutter/material.dart';
 
 class Steps extends StatefulWidget {
