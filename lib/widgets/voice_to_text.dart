@@ -37,7 +37,6 @@ class _VoiceToTextState extends State<VoiceToText> {
           _showErrorSnackbar("Speech error: ${errorNotification.errorMsg}");
         },
         onStatus: (status) {
-          // Optional: handle status changes like 'listening' or 'notListening'
         },
       );
 

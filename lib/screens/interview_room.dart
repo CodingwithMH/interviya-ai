@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math' as math;
 import 'package:interviya/data/providers/interview_provider.dart';
 import 'package:interviya/screens/interview_summary.dart';
@@ -6,9 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:interviya/widgets/circle_arcs.dart';
 import 'package:interviya/widgets/voice_to_text.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
+
 
 class InterviewRoom extends StatefulWidget {
-  const InterviewRoom({super.key,});
+  const InterviewRoom({super.key});
 
   @override
   State<InterviewRoom> createState() => _InterviewRoomState();
@@ -20,6 +23,8 @@ class _InterviewRoomState extends State<InterviewRoom>
   Timer? _timer;
   int _startSeconds = 100;
   late AnimationController _rotationController;
+
+bool _isSubmitting = false;
 
   int getTotalSeconds(InterviewProvider provider) {
     int minutes = int.tryParse(provider.duration) ?? 0;
@@ -33,10 +38,10 @@ class _InterviewRoomState extends State<InterviewRoom>
     return total ~/ provider.questions.length;
   }
 
- @override
+  @override
   void initState() {
     super.initState();
-    
+
     final provider = Provider.of<InterviewProvider>(context, listen: false);
     _startSeconds = getSecondsPerQuestion(provider);
     startTimer();
@@ -53,7 +58,7 @@ class _InterviewRoomState extends State<InterviewRoom>
     return "${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}";
   }
 
-void startTimer() {
+  void startTimer() {
     _timer?.cancel(); // Safety cleanup
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_startSeconds <= 0) {
@@ -71,20 +76,22 @@ void startTimer() {
   }
 
   void nextQuestion() {
-    // 1. Instantly stop the old running background clock sequence
-    _timer?.cancel(); 
+    // Instantly stop the old running background clock sequence
+    _timer?.cancel();
 
     final provider = Provider.of<InterviewProvider>(context, listen: false);
 
     if (provider.currentQuestionIndex < provider.questions.length - 1) {
       provider.nextQuestion(); // Increment Provider question slot index
-      
+
       setState(() {
-        _startSeconds = getSecondsPerQuestion(provider); // Reset visual countdown values safely
+        _startSeconds = getSecondsPerQuestion(
+          provider,
+        ); // Reset visual countdown values safely
       });
-      
-      // 2. Spin up a brand new fresh room clock tracking track
-      startTimer(); 
+
+      // Spin up a brand new fresh room clock tracking track
+      startTimer();
     } else {
       _goToSummary();
     }
@@ -247,19 +254,23 @@ void startTimer() {
                               ),
                             ),
                             Flexible(
-  flex: 2, 
-  child: VoiceToText(
-    onResponseRecorded: (String finalSpokenText) {
-      final provider = Provider.of<InterviewProvider>(context, listen: false);
-      
-      // Explicitly commit the text payload into your global state model first
-      provider.updateCurrentAnswer(finalSpokenText);
-      
-      // Move to the next question step securely
-      nextQuestion();
-    },
-  ),
-),
+                              flex: 2,
+                              child: VoiceToText(
+                                onResponseRecorded: (String finalSpokenText) {
+                                  final provider =
+                                      Provider.of<InterviewProvider>(
+                                        context,
+                                        listen: false,
+                                      );
+
+                                  // Explicitly commit the text payload into your global state model first
+                                  provider.updateCurrentAnswer(finalSpokenText);
+
+                                  // Move to the next question step securely
+                                  nextQuestion();
+                                },
+                              ),
+                            ),
                             Expanded(
                               child: _buildSideAction(
                                 icon: Icons.person_off_rounded,
@@ -283,36 +294,84 @@ void startTimer() {
     );
   }
 
-  void _goToSummary() {
-  _timer?.cancel();
-
-  final provider = Provider.of<InterviewProvider>(context, listen: false);
-
-  print("========== FINAL INTERVIEW RESULTS ==========");
-  for (int i = 0; i < provider.questions.length; i++) {
-    print("Q${i + 1}: ${provider.questions[i]}");
+  void _goToSummary() async {
+    _timer?.cancel();
     
-    String recordedAnswer = provider.answers[i].trim().isEmpty 
-        ? "No answer recorded / Question skipped" 
-        : provider.answers[i];
-        
-    print("A${i + 1}: $recordedAnswer");
-    print("---------------------------------------------");
-  }
-  print("=============================================");
+    // 1. CRITICAL: Check the guard clause BEFORE spawning any dialogs
+    if (_isSubmitting) return;
 
-  if (!mounted) return;
+    setState(() {
+      _isSubmitting = true;
+    });
 
-  Navigator.pushReplacement(
-    context,
-    MaterialPageRoute(
-      builder: (context) => ChangeNotifierProvider.value(
-        value: provider,
-        child: const InterviewSummaryScreen(),
+    // Show the loading dialog immediately after passing the guard
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(
+          color: Color(0xFF0A898D),
+        ),
       ),
-    ),
-  );
-}
+    );
+
+    final provider = Provider.of<InterviewProvider>(context, listen: false);
+
+    List<String> rawQuestions = provider.questions.map((q) => q.toString()).toList();
+    List<String> rawAnswers = provider.answers.map((ans) {
+      return ans.trim().isEmpty ? "No answer recorded / Question skipped" : ans.trim();
+    }).toList();
+
+    try {
+      final url = Uri.parse('https://codewithmh.pythonanywhere.com/submit-interview');
+      
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'questions': rawQuestions,
+          'answers': rawAnswers,
+        }),
+      ).timeout(const Duration(seconds: 45));
+
+      // 2. CRITICAL: Dismiss the loading dialog as soon as the network call returns
+      if (mounted) Navigator.pop(context);
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> evaluationMetrics = jsonDecode(response.body);
+        print("$evaluationMetrics");
+        if (!mounted) return;
+
+        // Now safe to replace the screen since the dialog is gone
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChangeNotifierProvider.value(
+              value: provider,
+              child: InterviewSummaryScreen(evaluationData: evaluationMetrics),
+            ),
+          ),
+        );
+      } else {
+        _showErrorSnackbar("Server Evaluation Error (${response.statusCode})");
+      }
+    } catch (e) {
+      // 3. CRITICAL: Also dismiss the dialog if a network exception/timeout occurs
+      if (mounted) Navigator.pop(context);
+      _showErrorSnackbar("Failed to connect to evaluation engine.");
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
+  }
+  void _showErrorSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.redAccent),
+    );
+  }
 
   void _confirmEndSession() {
     showDialog(

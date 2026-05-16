@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:interviya/data/models/interview_model.dart';
 import 'package:interviya/data/providers/user_provider.dart';
 import 'package:interviya/screens/interview_setup.dart';
 import 'package:interviya/screens/feedback.dart';
@@ -21,8 +22,8 @@ class _HomeState extends State<Home> {
   String? profileImage;
   bool isLoading = true;
   List<Map<String, dynamic>> _interviews = [];
-List<String> _categories = ["All"]; 
-bool isDataLoading = true;
+  List<String> _categories = ["All"];
+  bool isDataLoading = true;
 
   @override
   void initState() {
@@ -48,6 +49,7 @@ bool isDataLoading = true;
         return {
           "id": doc.id,
           "title": data['title'] ?? 'Untitled',
+          "categoryId": data['categoryId'] ?? '',
           "description": data['description'] ?? 'No description available.',
           "cat": tempMap[data['categoryId']] ?? 'General',
           "icon": IconData(
@@ -82,8 +84,11 @@ bool isDataLoading = true;
     final String? displayProfileImage = currentUser?.avatarPath;
 
     List filteredInterviews = _interviews.where((item) {
-      bool matchesSearch = item['title'].toLowerCase().contains(searchQuery.toLowerCase());
-      bool matchesCat = selectedCategory == "All" || item['cat'] == selectedCategory;
+      bool matchesSearch = item['title'].toLowerCase().contains(
+        searchQuery.toLowerCase(),
+      );
+      bool matchesCat =
+          selectedCategory == "All" || item['cat'] == selectedCategory;
       return matchesSearch && matchesCat;
     }).toList();
 
@@ -92,7 +97,12 @@ bool isDataLoading = true;
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _buildHeader(context, displayUserName, displayProfileImage, currentUser),
+            _buildHeader(
+              context,
+              displayUserName,
+              displayProfileImage,
+              currentUser,
+            ),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(
@@ -114,7 +124,7 @@ bool isDataLoading = true;
                     ),
                   ),
                   SizedBox(height: 15),
-                 
+
                   ...filteredInterviews.map(
                     (item) => _buildInterviewCard(item),
                   ),
@@ -128,7 +138,12 @@ bool isDataLoading = true;
     );
   }
 
-  Widget _buildHeader(BuildContext context, String userName, String? profileImage, dynamic currentUser) {
+  Widget _buildHeader(
+    BuildContext context,
+    String userName,
+    String? profileImage,
+    dynamic currentUser,
+  ) {
     return Stack(
       children: [
         Container(
@@ -157,33 +172,33 @@ bool isDataLoading = true;
             child: Row(
               children: [
                 CircleAvatar(
-                radius: 25,
-                backgroundColor: Colors.grey.shade200,
-                backgroundImage: profileImage != null 
-                    ? NetworkImage(profileImage) as ImageProvider
-                    : const AssetImage("assets/images/user.png"),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      "Welcome Back, $userName!",
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: Color(0xFF1E293B),
-                      ),
-                    ),
-                    const Text(
-                      "Let's practice today",
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
-                    ),
-                  ],
+                  radius: 25,
+                  backgroundColor: Colors.grey.shade200,
+                  backgroundImage: profileImage != null
+                      ? NetworkImage(profileImage) as ImageProvider
+                      : const AssetImage("assets/images/user.png"),
                 ),
-              ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        "Welcome Back, $userName!",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                      const Text(
+                        "Let's practice today",
+                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
 
                 IconButton(
                   icon: Icon(
@@ -191,15 +206,14 @@ bool isDataLoading = true;
                     color: Color(0xFF94A3B8),
                     size: 22,
                   ),
-                  onPressed: () {
-                  },
+                  onPressed: () {},
                 ),
 
                 PopupMenuButton<String>(
                   padding: EdgeInsets.zero,
                   color: Colors.white,
                   elevation: 8,
-                  
+
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),
                   ),
@@ -209,15 +223,12 @@ bool isDataLoading = true;
                     size: 22,
                   ),
                   onSelected: (value) {
-                    if (value=='upload'){
+                    if (value == 'upload') {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => Upload(),
-                        ),
+                        MaterialPageRoute(builder: (context) => Upload()),
                       );
-                    }
-                    else if (value == 'feedback') {
+                    } else if (value == 'feedback') {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -227,40 +238,61 @@ bool isDataLoading = true;
                     } else if (value == 'help') {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) =>  Help()),
+                        MaterialPageRoute(builder: (context) => Help()),
                       );
                     }
                   },
                   itemBuilder: (context) => [
-                    if (currentUser?.isAdmin ?? false) 
-      const PopupMenuItem(
-        value: 'upload',
-        child: Row(
-          children: [
-            Icon(Icons.cloud_upload_outlined, size: 20, color: Color(0xFF0A898D)),
-            SizedBox(width: 12),
-            Text(
-              'Upload Item',
-              style: TextStyle(color: Color(0xFF1E293B), fontSize: 14),
-            ),
-          ],
-        ),
-      ),
+                    if (currentUser?.isAdmin ?? false)
+                      const PopupMenuItem(
+                        value: 'upload',
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.cloud_upload_outlined,
+                              size: 20,
+                              color: Color(0xFF0A898D),
+                            ),
+                            SizedBox(width: 12),
+                            Text(
+                              'Upload Item',
+                              style: TextStyle(
+                                color: Color(0xFF1E293B),
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     PopupMenuItem(
                       value: 'feedback',
                       child: Row(
-                        children:  [
-                          Icon( Icons.feedback_outlined, size: 20, color: Color(0xFF0A898D), ),
+                        children: [
+                          Icon(
+                            Icons.feedback_outlined,
+                            size: 20,
+                            color: Color(0xFF0A898D),
+                          ),
                           SizedBox(width: 12),
-                          Text( 'Feedback', style: TextStyle( color: Color(0xFF1E293B), fontSize: 14, ), ),
+                          Text(
+                            'Feedback',
+                            style: TextStyle(
+                              color: Color(0xFF1E293B),
+                              fontSize: 14,
+                            ),
+                          ),
                         ],
                       ),
                     ),
                     PopupMenuItem(
                       value: 'help',
                       child: Row(
-                        children:  [
-                          Icon( Icons.help_outline_rounded, size: 20, color: Color(0xFF0A898D), ),
+                        children: [
+                          Icon(
+                            Icons.help_outline_rounded,
+                            size: 20,
+                            color: Color(0xFF0A898D),
+                          ),
                           SizedBox(width: 12),
                           Text(
                             'Help',
@@ -397,74 +429,85 @@ bool isDataLoading = true;
     );
   }
 
-Widget _buildInterviewCard(Map<String, dynamic> interview) {
-  return Container(
-    margin: const EdgeInsets.only(bottom: 12),
-    padding: const EdgeInsets.all(12),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
-      boxShadow: [
-        BoxShadow(
-          color: const Color(0xff1E293B).withValues(alpha: 0.1),
-          blurRadius: 20,
-          offset: const Offset(0, 4),
-        ),
-      ],
-    ),
-    child: Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF1F5F9),
-            borderRadius: BorderRadius.circular(12),
+  Widget _buildInterviewCard(Map<String, dynamic> interview) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xff1E293B).withValues(alpha: 0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
           ),
-          child: Icon(interview['icon'], color: const Color(0xFF0A898D), size: 28),
-        ),
-        const SizedBox(width: 12),
-        
-        // 💡 1. Wrap Column in Expanded so it calculates its max width constraint properly
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min, // Keep it compact vertically
-            children: [
-              Text(
-                interview['title'],
-                // 💡 2. Add overflow behavior property styles here
-                maxLines: 1, 
-                overflow: TextOverflow.ellipsis, 
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-              ),
-              const SizedBox(height: 2), // Tiny spacing buffer
-              Text(
-                "${interview['count']} Interviews taken",
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: Colors.grey, fontSize: 12),
-              ),
-            ],
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              interview['icon'],
+              color: const Color(0xFF0A898D),
+              size: 28,
+            ),
           ),
-        ),
-        
-        const SizedBox(width: 8),
-        
-        GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => InterviewSetup(interview: interview)),
-            );
-          },
-          child: const Icon(
-            Icons.play_circle_fill,
-            color: Color(0xFF0A898D),
-            size: 40,
+          const SizedBox(width: 12),
+
+          // 💡 1. Wrap Column in Expanded so it calculates its max width constraint properly
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min, // Keep it compact vertically
+              children: [
+                Text(
+                  interview['title'],
+                  // 💡 2. Add overflow behavior property styles here
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 2), // Tiny spacing buffer
+                Text(
+                  "${interview['count']} Interviews taken",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+
+          const SizedBox(width: 8),
+
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => InterviewSetup(
+                    interview: InterviewModel.fromMap(interview),
+                  ),
+                ),
+              );
+            },
+            child: const Icon(
+              Icons.play_circle_fill,
+              color: Color(0xFF0A898D),
+              size: 40,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

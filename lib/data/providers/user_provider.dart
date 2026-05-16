@@ -10,7 +10,6 @@ class UserProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isAdmin => _currentUser?.isAdmin ?? false;
 
-  // Fetch data once on app start or login
   Future<void> fetchUser() async {
     _isLoading = true;
     notifyListeners();
@@ -21,7 +20,6 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Call this when the user logs out
   void clearUser() {
     _currentUser = null;
     notifyListeners();

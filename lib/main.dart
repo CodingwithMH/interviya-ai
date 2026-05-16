@@ -5,6 +5,7 @@ import 'package:interviya/data/providers/user_provider.dart'; // 👈 Import you
 import 'package:interviya/screens/sign_in.dart';
 import 'package:interviya/screens/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:interviya/widgets/main_wrapper.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 
@@ -48,6 +49,7 @@ class FlutterProject extends StatelessWidget {
       routes: {
         '/': (context) => const SplashScreen(),
         '/signin': (context) => const SignIn(),
+        '/mainwrapper': (context) => const MainWrapper(),
       },
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:interviya/data/models/interview_model.dart';
 import 'package:interviya/data/providers/interview_provider.dart';
 import 'package:interviya/screens/interview_setup.dart';
 import 'package:interviya/widgets/custom_appbar.dart';
@@ -6,7 +7,8 @@ import 'package:interviya/widgets/main_wrapper.dart';
 import 'package:provider/provider.dart';
 
 class InterviewSummaryScreen extends StatefulWidget {
-  const InterviewSummaryScreen({super.key});
+  final Map<String, dynamic> evaluationData;
+  const InterviewSummaryScreen({super.key, required this.evaluationData});
   @override
   State<InterviewSummaryScreen> createState() => _InterviewSummaryScreenState();
 }
@@ -14,30 +16,23 @@ class InterviewSummaryScreen extends StatefulWidget {
 class _InterviewSummaryScreenState extends State<InterviewSummaryScreen> {
   bool isExpanded = false;
 
-  final List<Map<String, dynamic>> allQuestions = [
-    {"q": "Q1: What is a Widget?", "isCorrect": true},
-    {"q": "Q2: Explaining State...", "isCorrect": false},
-    {"q": "Q3: Hot Reload vs Hot Restart", "isCorrect": true},
-    {"q": "Q4: Lifecycle of StatefulWidget", "isCorrect": true},
-    {"q": "Q5: What are Keys?", "isCorrect": false},
-    {"q": "Q6: InheritedWidget use case", "isCorrect": true},
-    {"q": "Q7: Main vs RunApp", "isCorrect": true},
-    {"q": "Q8: What is a Future?", "isCorrect": true},
-    {"q": "Q9: Purpose of Scaffold", "isCorrect": false},
-    {"q": "Q10: State Management", "isCorrect": true},
-    {"q": "Q11: Streams in Dart", "isCorrect": false},
-    {"q": "Q12: Dependency Injection", "isCorrect": true},
-    {"q": "Q13: Flutter Architecture", "isCorrect": true},
-    {"q": "Q14: Performance Profiling", "isCorrect": false},
-    {"q": "Q15: Testing in Flutter", "isCorrect": true},
-  ];
-
   @override
   Widget build(BuildContext context) {
     final session = Provider.of<InterviewProvider>(context);
-    final displayedQuestions = isExpanded
-        ? allQuestions
-        : allQuestions.take(2).toList();
+
+    final int overallScore = widget.evaluationData['score_out_of_hundred'] ?? 0;
+    
+    final double confidence = (widget.evaluationData['confidence'] ?? 0.0) / 100.0;
+    final double technical = (widget.evaluationData['technical_accuracy'] ?? 0.0) / 100.0;
+    final double communication = (widget.evaluationData['communication'] ?? 0.0) / 100.0;
+    
+    final String insights = widget.evaluationData['ai_insights'] ?? "No evaluation details shared.";
+    
+    final List<dynamic> questionBreakdown = widget.evaluationData['question_wise_breakdown'] ?? [];
+
+    final List<dynamic> displayedQuestions = isExpanded
+        ? questionBreakdown
+        : questionBreakdown.take(2).toList();
 
     return Scaffold(
       backgroundColor: Color(0xFFF8FAFF),
@@ -66,7 +61,7 @@ class _InterviewSummaryScreenState extends State<InterviewSummaryScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "82/100",
+                    "$overallScore/100",
                     style: TextStyle(
                       fontSize: 48,
                       fontWeight: FontWeight.bold,
@@ -94,11 +89,11 @@ class _InterviewSummaryScreenState extends State<InterviewSummaryScreen> {
                 crossAxisAlignment:
                     CrossAxisAlignment.stretch, 
                 children: [
-                  _buildStatCard("Confidence", 0.7),
+                  _buildStatCard("Confidence", confidence),
                   SizedBox(width: 12),
-                  _buildStatCard("Technical Accuracy", 0.85),
+                  _buildStatCard("Technical Accuracy", technical),
                   SizedBox(width: 12),
-                  _buildStatCard("Communication", 0.6),
+                  _buildStatCard("Communication", communication),
                 ],
               ),
             ),
@@ -126,7 +121,7 @@ class _InterviewSummaryScreenState extends State<InterviewSummaryScreen> {
                 ],
               ),
               child: Text(
-                "You explain State management well, but try to use more real-world examples in technical answers",
+                insights,
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 14,
@@ -200,7 +195,7 @@ class _InterviewSummaryScreenState extends State<InterviewSummaryScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => InterviewSetup(interview: session.interviewData,),
+                          builder: (context) => InterviewSetup(interview: InterviewModel.fromMap(session.interviewData)),
                         ),
                       );
                     },
@@ -221,9 +216,10 @@ class _InterviewSummaryScreenState extends State<InterviewSummaryScreen> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.push(
+                      Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(builder: (context) => MainWrapper()),
+                        (route) => false,
                       );
                     },
                     style: ElevatedButton.styleFrom(
@@ -234,7 +230,7 @@ class _InterviewSummaryScreenState extends State<InterviewSummaryScreen> {
                       ),
                     ),
                     child: Text(
-                      "Back to Dashboard",
+                      "Back to Home",
                       style: TextStyle(color: Colors.white),
                     ),
                   ),

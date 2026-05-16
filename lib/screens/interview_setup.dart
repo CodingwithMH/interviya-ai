@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:interviya/data/models/user_model.dart';
+import 'package:interviya/data/models/interview_model.dart';
 import 'package:interviya/data/providers/interview_provider.dart';
 import 'package:interviya/screens/interview_room.dart';
 import 'package:interviya/widgets/custom_appbar.dart';
@@ -11,7 +12,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class InterviewSetup extends StatefulWidget {
-  final Map<String, dynamic> interview;
+  final InterviewModel interview;
   const InterviewSetup({super.key, required this.interview});
 
   @override
@@ -62,14 +63,14 @@ class _InterviewSetupState extends State<InterviewSetup> {
                 child: Row(
                   children: [
                     Icon(
-                      widget.interview['icon'],
+                      widget.interview.icon,
                       color: Color(0xFF0A898D),
                       size: 30,
                     ),
                     SizedBox(width: 25),
                     Expanded(
                       child: Text(
-                        widget.interview['title'],
+                        widget.interview.title,
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -215,109 +216,113 @@ class _InterviewSetupState extends State<InterviewSetup> {
                     ),
                   ),
                   onPressed: () async {
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (context) => const Center(
-      child: CircularProgressIndicator(
-        color: Color(0xFF0A898D),
-      ),
-    ),
-  );
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) => const Center(
+                        child: CircularProgressIndicator(
+                          color: Color(0xFF0A898D),
+                        ),
+                      ),
+                    );
 
-  final userId = FirebaseAuth.instance.currentUser?.uid;
-  UserModel? loggedInUser;
+                    final userId = FirebaseAuth.instance.currentUser?.uid;
+                    UserModel? loggedInUser;
 
-  if (userId != null) {
-    var doc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .get();
-    if (doc.exists) {
-      loggedInUser = UserModel.fromMap(doc.data()!);
-    }
-  }
+                    if (userId != null) {
+                      var doc = await FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(userId)
+                          .get();
+                      if (doc.exists) {
+                        loggedInUser = UserModel.fromMap(doc.data()!);
+                      }
+                    }
 
-  String difficulty = _difficultyValue == 0
-      ? "Beginner"
-      : _difficultyValue == 1
-      ? "Intermediate"
-      : "Expert";
+                    String difficulty = _difficultyValue == 0
+                        ? "Beginner"
+                        : _difficultyValue == 1
+                        ? "Intermediate"
+                        : "Expert";
 
-  final provider = Provider.of<InterviewProvider>(
-    context,
-    listen: false,
-  );
+                    final provider = Provider.of<InterviewProvider>(
+                      context,
+                      listen: false,
+                    );
 
-  final settings = getSessionSettings();
-  List<String> fetchedQuestions = [];
-  bool isSuccess = false;
+                    final settings = getSessionSettings();
+                    List<String> fetchedQuestions = [];
+                    bool isSuccess = false;
 
-  try {
-    // Note: Use 10.0.2.2 instead of localhost if using an Android Emulator
-    var url = Uri.parse('https://codewithmh.pythonanywhere.com/get-questions');
-    Map<String, dynamic> cleanInterviewData = {
-      "title": widget.interview['title'],
-      "categoryId": widget.interview['categoryId'],
-      "description": widget.interview['description'],
-    };
-    print("$cleanInterviewData + $selectedMode ");
-    var response = await http.post(
-      url,
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "interviewData": cleanInterviewData,
-        "mode": selectedMode,
-        "difficulty": difficulty,
-        "duration": settings['time'],
-        "questionCount": settings['questions'],
-        "user": loggedInUser?.toMap(),
-      }),
-    ).timeout(const Duration(seconds: 30));
+                    try {
+                      // Note: Use 10.0.2.2 instead of localhost if using an Android Emulator
+                      var url = Uri.parse(
+                        'https://codewithmh.pythonanywhere.com/get-questions',
+                      );
+                      Map<String, dynamic> cleanInterviewData = {
+                  "title": widget.interview.title,
+                  "categoryId": widget.interview.categoryId, // 3. FIXED: Never returns null now
+                  "description": widget.interview.description,
+                };
+                      print("$cleanInterviewData + $selectedMode ");
+                      var response = await http
+                          .post(
+                            url,
+                            headers: {"Content-Type": "application/json"},
+                            body: jsonEncode({
+                              "interviewData": cleanInterviewData,
+                              "mode": selectedMode,
+                              "difficulty": difficulty,
+                              "duration": settings['time'],
+                              "questionCount": settings['questions'],
+                              "user": loggedInUser?.toMap(),
+                            }),
+                          )
+                          .timeout(const Duration(seconds: 30));
 
-    if (response.statusCode == 200) {
-      var decodedData = jsonDecode(response.body);
-      List<dynamic> questionsRaw = decodedData['questions'];
+                      if (response.statusCode == 200) {
+                        var decodedData = jsonDecode(response.body);
+                        List<dynamic> questionsRaw = decodedData['questions'];
 
-      fetchedQuestions = questionsRaw
-          .map((item) => item['question'].toString())
-          .toList();
+                        fetchedQuestions = questionsRaw
+                            .map((item) => item['question'].toString())
+                            .toList();
 
-      isSuccess = true;
-    } else {
-      print("Server Error: ${response.statusCode}");
-    }
-  } catch (e) {
-    print("Connection Error: $e");
-  } finally {
-    if (mounted) {
-      Navigator.of(context, rootNavigator: true).pop();
-    }
-  }
+                        isSuccess = true;
+                      } else {
+                        print("Server Error: ${response.statusCode}");
+                      }
+                    } catch (e) {
+                      print("Connection Error: $e");
+                    } finally {
+                      if (mounted) {
+                        Navigator.of(context, rootNavigator: true).pop();
+                      }
+                    }
 
-  if (!isSuccess || fetchedQuestions.isEmpty) {
-    return;
-  }
+                    if (!isSuccess || fetchedQuestions.isEmpty) {
+                      return;
+                    }
 
-  provider.updateSession(
-    data: widget.interview,
-    mode: selectedMode,
-    diff: difficulty,
-    user: loggedInUser,
-    duration: settings['time']!,
-    questionCount: settings['questions']!,
-  );
-  provider.setQuestions(fetchedQuestions);
+                    provider.updateSession(
+                      data: widget.interview.toMap(),
+                      mode: selectedMode,
+                      diff: difficulty,
+                      user: loggedInUser,
+                      duration: settings['time']!,
+                      questionCount: settings['questions']!,
+                    );
+                    provider.setQuestions(fetchedQuestions);
 
-  if (mounted) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => InterviewRoom(),
-      ),
-    );
-  }
-},
+                    if (mounted) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => InterviewRoom(),
+                        ),
+                      );
+                    }
+                  },
                   child: Text(
                     "Start Interview Now",
                     style: TextStyle(fontSize: 18, color: Colors.white),

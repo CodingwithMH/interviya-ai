@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:interviya/data/providers/user_provider.dart';
 import 'package:interviya/data/services/auth_service.dart';
 import 'package:interviya/widgets/custom_appbar.dart';
+import 'package:provider/provider.dart';
 
 class Profile extends StatefulWidget {
   final VoidCallback onBack;
@@ -34,6 +36,8 @@ void _handleLogout() async {
 }
   @override
   Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
+    final user = userProvider.currentUser;
     return Scaffold(
       backgroundColor: Color(0xFFF8FAFF),
       appBar: CustomAppbar(text:"Profile", onBack: widget.onBack),
@@ -66,7 +70,9 @@ void _handleLogout() async {
                       ),
                       child:   CircleAvatar(
                         radius: 60,
-                        backgroundImage: AssetImage("assets/images/user.png"),
+                        backgroundImage: (user?.avatarPath != null && user!.avatarPath!.isNotEmpty)
+                                  ? NetworkImage(user.avatarPath!) as ImageProvider
+                                  : const AssetImage("assets/images/user.png"),
                       ),
                     ),
                   ),
@@ -129,19 +135,11 @@ void _handleLogout() async {
                     ),
                     child: Column(
                       children: [
-                        _buildDetailRow("Full Name:", "Muhammad Hammad"),
-                        _buildDetailRow(
-                          "Education:",
-                          "BS Software Engineering",
-                        ),
-                        _buildDetailRow("Target Role:", "Flutter Developer"),
-                        _buildDetailRow("Experience Level:", "Beginner"),
-                        _buildDetailRow(
-                          "Email:",
-                          "hammadtheta@gmail.com",
-                          isLast: true,
-                        ),
-                      ],
+                              _buildDetailRow("Full Name:", user?.fullName ?? "N/A"),
+                              _buildDetailRow("Target Role:", user?.targetRole ?? "Not Set"),
+                              _buildDetailRow("Experience Level:", user?.experienceLevel ?? "Not Set"),
+                              _buildDetailRow("Email:", user?.email ?? "N/A", isLast: true),
+                            ],
                     ),
                   ),
                   Positioned(
