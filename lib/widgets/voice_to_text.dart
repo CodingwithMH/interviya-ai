@@ -1,106 +1,125 @@
-import 'dart:io';
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:interviya/data/providers/interview_provider.dart';
-import 'package:provider/provider.dart';
-import 'package:record/record.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:http/http.dart' as http;
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class VoiceToText extends StatefulWidget {
-  const VoiceToText({super.key});
+  final Function(String) onResponseRecorded;
+  const VoiceToText({
+    super.key,
+    required this.onResponseRecorded
+  });
 
   @override
   State<VoiceToText> createState() => _VoiceToTextState();
 }
 
 class _VoiceToTextState extends State<VoiceToText> {
-  final AudioRecorder _audioRecorder = AudioRecorder();
+  final stt.SpeechToText _speech = stt.SpeechToText();
   bool _isRecording = false;
+  bool _isProcessing = false;
+  String _recognizedText = "";
 
-  final String _hfToken = dotenv.env['HUGGING_FACE_ACCESS_TOKEN   '] ?? "";
-  final String _modelUrl = "https://api-inference.huggingface.co/models/openai/whisper-large-v3-turbo";
+  @override
+  void initState() {
+    super.initState();
+    _initializeSpeech();
+  }
 
   @override
   void dispose() {
-    _audioRecorder.dispose();
+    _speech.stop(); 
     super.dispose();
   }
 
-  Future<void> _startRecording() async {
+  Future<void> _initializeSpeech() async {
     try {
-      if (await _audioRecorder.hasPermission()) {
-        final directory = await getTemporaryDirectory();
-        final filePath = '${directory.path}/audio_record.m4a';
+      bool available = await _speech.initialize(
+        onError: (errorNotification) {
+          _showErrorSnackbar("Speech error: ${errorNotification.errorMsg}");
+        },
+        onStatus: (status) {
+          // Optional: handle status changes like 'listening' or 'notListening'
+        },
+      );
 
-        await _audioRecorder.start(
-          const RecordConfig(encoder: AudioEncoder.aacLc), 
-          path: filePath,
-        );
-
-        setState(() {
-          _isRecording = true;
-        });
-        print("AI is listening...");
+      if (!available && mounted) {
+        _showErrorSnackbar("Speech recognition is not available on this device.");
       }
     } catch (e) {
-      print('Error starting record: $e');
+      _showErrorSnackbar("Failed to initialize speech recognition.");
+    }
+  }
+
+  Future<void> _startRecording() async {
+    if (_isProcessing) return;
+
+    if (!_speech.isAvailable) {
+      _showErrorSnackbar("Speech engine not ready. Please try again.");
+      return;
+    }
+
+    setState(() {
+      _isRecording = true;
+      _recognizedText = "";
+    });
+
+    try {
+      await _speech.listen(
+        listenMode: stt.ListenMode.confirmation,
+        onResult: (result) {
+          if (!mounted) return;
+          setState(() {
+            _recognizedText = result.recognizedWords;
+          });
+        },
+      );
+    } catch (e) {
+      setState(() {
+        _isRecording = false;
+      });
+      _showErrorSnackbar("Failed to start listening.");
     }
   }
 
   Future<void> _stopRecording() async {
-    try {
-      final path = await _audioRecorder.stop();
-      setState(() {
-        _isRecording = false;
-      });
-      print("AI stopped listening.");
+  if (!_isRecording) return;
 
-      if (path != null) {
-        _sendAudioToHuggingFace(File(path));
-      }
-    } catch (e) {
-      print('Error stopping record: $e');
+  setState(() {
+    _isRecording = false;
+    _isProcessing = true;
+  });
+
+  try {
+    await _speech.stop();
+    final text = _recognizedText.trim();
+
+    if (mounted) {
+      widget.onResponseRecorded(text.isNotEmpty ? text : "No answer provided");
+    }
+  } catch (e) {
+    _showErrorSnackbar("Error saving your response.");
+  } finally {
+    if (mounted) {
+      setState(() {
+        _isProcessing = false;
+      });
     }
   }
+}
 
-  Future<void> _sendAudioToHuggingFace(File audioFile) async {
-    print("Sending audio to Hugging Face...");
-    
-    try {
-      final bytes = await audioFile.readAsBytes();
+  void _showErrorSnackbar(String message) {
+    if (!mounted) return;
 
-      final response = await http.post(
-        Uri.parse(_modelUrl),
-        headers: {
-          'Authorization': 'Bearer $_hfToken',
-          'Content-Type': 'audio/x-m4a',
-        },
-        body: bytes,
-      );
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = jsonDecode(response.body);
-        final String textResult = data['text'] ?? "";
-        
-        print("Transcription Success: $textResult");
-        
-        if (mounted && textResult.isNotEmpty) {
-          Provider.of<InterviewProvider>(context, listen: false)
-              .updateCurrentAnswer(textResult);
-        }
-      } else {
-        print("Hugging Face Error: ${response.statusCode} - ${response.body}");
-      }
-    } catch (e) {
-      print("Network or parsing error: $e");
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.redAccent,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -108,21 +127,25 @@ class _VoiceToTextState extends State<VoiceToText> {
           onLongPressStart: (_) => _startRecording(),
           onLongPressEnd: (_) => _stopRecording(),
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
+            duration: const Duration(milliseconds: 250),
             height: 85,
             width: 85,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
-                colors: _isRecording 
-                    ? [const Color(0xffFF5252), const Color(0xffFF1744)] 
-                    : [const Color(0xff0A898D), const Color(0xff0CBABF)],
+                colors: _isProcessing
+                    ? [Colors.grey.shade400, Colors.grey.shade600]
+                    : _isRecording
+                        ? [const Color(0xffFF5252), const Color(0xffFF1744)]
+                        : [const Color(0xff0A898D), const Color(0xff0CBABF)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: (_isRecording ? const Color(0xffFF5252) : const Color(0xff0A898D))
+                  color: (_isRecording
+                          ? const Color(0xffFF5252)
+                          : const Color(0xff0A898D))
                       .withValues(alpha: 0.35),
                   blurRadius: _isRecording ? 30 : 20,
                   spreadRadius: _isRecording ? 8 : 4,
@@ -130,21 +153,42 @@ class _VoiceToTextState extends State<VoiceToText> {
                 ),
               ],
             ),
-            child: Icon(
-              _isRecording ? Icons.stop : Icons.mic, 
-              color: Colors.white, 
-              size: 42,
+            child: Center(
+              child: _isProcessing
+                  ? const SizedBox(
+                      height: 32,
+                      width: 32,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 3,
+                      ),
+                    )
+                  : Icon(
+                      _isRecording ? Icons.stop : Icons.mic,
+                      color: Colors.white,
+                      size: 42,
+                    ),
             ),
           ),
         ),
         Padding(
-  padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 4.0),
-  child: Text(
-    _isRecording ? "Listening..." : "Hold to speak",
-    textAlign: TextAlign.center,
-    style: const TextStyle(fontSize: 12),
-  ),
-)
+          padding: const EdgeInsets.symmetric(
+            vertical: 12,
+            horizontal: 4,
+          ),
+          child: Text(
+            _isProcessing
+                ? "Processing audio..."
+                : _isRecording
+                    ? "Listening..."
+                    : "Hold to speak",
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
       ],
     );
   }

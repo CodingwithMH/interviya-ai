@@ -30,11 +30,23 @@ class InterviewProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateCurrentAnswer(String transcribedText) {
+  void updateCurrentAnswer(
+    String transcribedText,
+  ) {
     if (questions.isEmpty) return;
-    
-    answers[currentQuestionIndex] = transcribedText;
-    notifyListeners(); 
+
+    final currentAnswer =
+        answers[currentQuestionIndex];
+
+    if (currentAnswer.isEmpty) {
+      answers[currentQuestionIndex] =
+          transcribedText;
+    } else {
+      answers[currentQuestionIndex] =
+          "$currentAnswer $transcribedText";
+    }
+
+    notifyListeners();
   }
 
   void nextQuestion() {

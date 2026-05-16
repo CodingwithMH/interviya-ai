@@ -397,61 +397,74 @@ bool isDataLoading = true;
     );
   }
 
-  Widget _buildInterviewCard(Map<String, dynamic> interview) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 12),
-      padding: EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0xff1E293B).withValues(alpha: 0.1),
-            blurRadius: 20,
-            offset: Offset(0, 4),
+Widget _buildInterviewCard(Map<String, dynamic> interview) {
+  return Container(
+    margin: const EdgeInsets.only(bottom: 12),
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+      boxShadow: [
+        BoxShadow(
+          color: const Color(0xff1E293B).withValues(alpha: 0.1),
+          blurRadius: 20,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    ),
+    child: Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F5F9),
+            borderRadius: BorderRadius.circular(12),
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(interview['icon'], color: Color(0xFF0A898D), size: 28),
-          ),
-          SizedBox(width: 12),
-          Column(
+          child: Icon(interview['icon'], color: const Color(0xFF0A898D), size: 28),
+        ),
+        const SizedBox(width: 12),
+        
+        // 💡 1. Wrap Column in Expanded so it calculates its max width constraint properly
+        Expanded(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min, // Keep it compact vertically
             children: [
               Text(
                 interview['title'],
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                // 💡 2. Add overflow behavior property styles here
+                maxLines: 1, 
+                overflow: TextOverflow.ellipsis, 
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
               ),
+              const SizedBox(height: 2), // Tiny spacing buffer
               Text(
                 "${interview['count']} Interviews taken",
-                style: TextStyle(color: Colors.grey, fontSize: 12),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
               ),
             ],
           ),
-          Spacer(),
-          GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => InterviewSetup(interview: interview,)),
-              );
-            },
-            child: Icon(
-              Icons.play_circle_fill,
-              color: Color(0xFF0A898D),
-              size: 40,
-            ),
+        ),
+        
+        const SizedBox(width: 8),
+        
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => InterviewSetup(interview: interview)),
+            );
+          },
+          child: const Icon(
+            Icons.play_circle_fill,
+            color: Color(0xFF0A898D),
+            size: 40,
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 }

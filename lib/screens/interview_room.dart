@@ -8,13 +8,7 @@ import 'package:interviya/widgets/voice_to_text.dart';
 import 'package:provider/provider.dart';
 
 class InterviewRoom extends StatefulWidget {
-  final List<String> questions;
-  final String? duration;
-  const InterviewRoom({
-    super.key,
-    required this.questions,
-    required this.duration,
-  });
+  const InterviewRoom({super.key,});
 
   @override
   State<InterviewRoom> createState() => _InterviewRoomState();
@@ -22,25 +16,29 @@ class InterviewRoom extends StatefulWidget {
 
 class _InterviewRoomState extends State<InterviewRoom>
     with SingleTickerProviderStateMixin {
-  int currentQuestionIndex = 0;
+  // int currentQuestionIndex = 0;
   Timer? _timer;
   int _startSeconds = 100;
   late AnimationController _rotationController;
 
-  int get totalSeconds {
-    int minutes = int.tryParse(widget.duration ?? '0') ?? 0;
+  int getTotalSeconds(InterviewProvider provider) {
+    int minutes = int.tryParse(provider.duration) ?? 0;
     return minutes * 60;
   }
 
-  int get secondsPerQuestion {
-    if (widget.questions.isEmpty || totalSeconds == 0) return 60;
-    return totalSeconds ~/ widget.questions.length;
+  int getSecondsPerQuestion(InterviewProvider provider) {
+    if (provider.questions.isEmpty) return 60;
+    int total = getTotalSeconds(provider);
+    if (total == 0) return 60;
+    return total ~/ provider.questions.length;
   }
 
-  @override
+ @override
   void initState() {
     super.initState();
-    _startSeconds = secondsPerQuestion;
+    
+    final provider = Provider.of<InterviewProvider>(context, listen: false);
+    _startSeconds = getSecondsPerQuestion(provider);
     startTimer();
 
     _rotationController = AnimationController(
@@ -55,11 +53,14 @@ class _InterviewRoomState extends State<InterviewRoom>
     return "${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}";
   }
 
-  void startTimer() {
-    _timer?.cancel();
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+void startTimer() {
+    _timer?.cancel(); // Safety cleanup
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_startSeconds <= 0) {
-        // Time for this question is up!
+        final provider = Provider.of<InterviewProvider>(context, listen: false);
+        if (provider.answers[provider.currentQuestionIndex].isEmpty) {
+          provider.updateCurrentAnswer("No answer provided (Time out)");
+        }
         nextQuestion();
       } else {
         setState(() {
@@ -70,14 +71,21 @@ class _InterviewRoomState extends State<InterviewRoom>
   }
 
   void nextQuestion() {
-    if (currentQuestionIndex < widget.questions.length - 1) {
+    // 1. Instantly stop the old running background clock sequence
+    _timer?.cancel(); 
+
+    final provider = Provider.of<InterviewProvider>(context, listen: false);
+
+    if (provider.currentQuestionIndex < provider.questions.length - 1) {
+      provider.nextQuestion(); // Increment Provider question slot index
+      
       setState(() {
-        currentQuestionIndex++;
-        // Reset timer to the per-question limit
-        _startSeconds = secondsPerQuestion;
+        _startSeconds = getSecondsPerQuestion(provider); // Reset visual countdown values safely
       });
+      
+      // 2. Spin up a brand new fresh room clock tracking track
+      startTimer(); 
     } else {
-      _timer?.cancel();
       _goToSummary();
     }
   }
@@ -91,6 +99,13 @@ class _InterviewRoomState extends State<InterviewRoom>
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<InterviewProvider>(context);
+
+    if (provider.questions.isEmpty) {
+      return const Scaffold(
+        body: Center(child: Text("No questions available.")),
+      );
+    }
     return Scaffold(
       backgroundColor: Color(0xFFF8FAFF),
       body: SafeArea(
@@ -119,7 +134,7 @@ class _InterviewRoomState extends State<InterviewRoom>
                               ),
                             ),
                             Text(
-                              "Question ${currentQuestionIndex + 1} of ${widget.questions.length}",
+                              "Question ${provider.currentQuestionIndex + 1} of ${provider.questions.length}",
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -191,10 +206,10 @@ class _InterviewRoomState extends State<InterviewRoom>
                         ),
                         SizedBox(height: 50),
                         Text(
-                          widget.questions[currentQuestionIndex],
+                          provider.questions[provider.currentQuestionIndex],
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 25,
+                            fontSize: 22,
                             fontWeight: FontWeight.w800,
                             color: Color(0xff1E293B),
                             height: 1.3,
@@ -231,8 +246,20 @@ class _InterviewRoomState extends State<InterviewRoom>
                                 onTap: nextQuestion,
                               ),
                             ),
-                            // Give the recording component the priority space
-                            const Flexible(flex: 2, child: VoiceToText()),
+                            Flexible(
+  flex: 2, 
+  child: VoiceToText(
+    onResponseRecorded: (String finalSpokenText) {
+      final provider = Provider.of<InterviewProvider>(context, listen: false);
+      
+      // Explicitly commit the text payload into your global state model first
+      provider.updateCurrentAnswer(finalSpokenText);
+      
+      // Move to the next question step securely
+      nextQuestion();
+    },
+  ),
+),
                             Expanded(
                               child: _buildSideAction(
                                 icon: Icons.person_off_rounded,
@@ -257,18 +284,35 @@ class _InterviewRoomState extends State<InterviewRoom>
   }
 
   void _goToSummary() {
-    _timer?.cancel();
+  _timer?.cancel();
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ChangeNotifierProvider.value(
-          value: Provider.of<InterviewProvider>(context, listen: false),
-          child: const InterviewSummaryScreen(),
-        ),
-      ),
-    );
+  final provider = Provider.of<InterviewProvider>(context, listen: false);
+
+  print("========== FINAL INTERVIEW RESULTS ==========");
+  for (int i = 0; i < provider.questions.length; i++) {
+    print("Q${i + 1}: ${provider.questions[i]}");
+    
+    String recordedAnswer = provider.answers[i].trim().isEmpty 
+        ? "No answer recorded / Question skipped" 
+        : provider.answers[i];
+        
+    print("A${i + 1}: $recordedAnswer");
+    print("---------------------------------------------");
   }
+  print("=============================================");
+
+  if (!mounted) return;
+
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(
+      builder: (context) => ChangeNotifierProvider.value(
+        value: provider,
+        child: const InterviewSummaryScreen(),
+      ),
+    ),
+  );
+}
 
   void _confirmEndSession() {
     showDialog(

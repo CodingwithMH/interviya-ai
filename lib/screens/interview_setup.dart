@@ -261,7 +261,7 @@ class _InterviewSetupState extends State<InterviewSetup> {
       "categoryId": widget.interview['categoryId'],
       "description": widget.interview['description'],
     };
-
+    print("$cleanInterviewData + $selectedMode ");
     var response = await http.post(
       url,
       headers: {"Content-Type": "application/json"},
@@ -313,10 +313,7 @@ class _InterviewSetupState extends State<InterviewSetup> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => InterviewRoom(
-          questions: fetchedQuestions,
-          duration: settings["time"],
-        ),
+        builder: (context) => InterviewRoom(),
       ),
     );
   }
