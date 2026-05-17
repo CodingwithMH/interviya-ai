@@ -46,24 +46,28 @@ class _StepsState extends State<Steps> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     InkWell(
-                          onTap: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (context) => SignUp()),
-                            );
-                          },
-                          child: Text(
-                        "skip",
-                        style: TextStyle(
-                          fontSize: 20,
-                          decoration: TextDecoration.underline,
-                          decorationColor: Color(0xff0A898D),
-                          decorationThickness: 2,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xff0A898D),
+                      onTap: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => SignUp()),
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(4),
+                      child: Padding(
+                        padding: const EdgeInsets.all(2.0),
+                        child: Text(
+                          "skip",
+                          style: TextStyle(
+                            fontSize: 20,
+                            decoration: TextDecoration.underline,
+                            decorationColor: Color(0xff0A898D),
+                            decorationThickness: 2,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xff0A898D),
+                          ),
                         ),
                       ),
-                        ),
+                    ),
                   ],
                 ),
                 Expanded(child: Container()),
@@ -72,12 +76,12 @@ class _StepsState extends State<Steps> {
                   children: [
                     Flexible(
                       child: Image.asset(
-                      "assets/images/${steps[currentIndex]['image']!}",
-                      height: 300,
-                      width: 300,
-                      fit: BoxFit.contain,
+                        "assets/images/${steps[currentIndex]['image']!}",
+                        height: 300,
+                        width: 300,
+                        fit: BoxFit.contain,
+                      ),
                     ),
-                    )
                   ],
                 ),
                 Expanded(child: Container()),

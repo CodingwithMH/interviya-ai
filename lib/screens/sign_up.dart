@@ -276,9 +276,13 @@ void handleGoogleSignIn() async {
                               MaterialPageRoute(builder: (context) => SignIn()),
                             );
                           },
-                          child: Text(
-                            "Login",
-                            style: TextStyle(color: Color(0xff0A898D)),
+                          borderRadius: BorderRadius.circular(4),
+                          child: Padding(
+                            padding: const EdgeInsets.all(2.0),
+                            child: Text(
+                              "Login",
+                              style: TextStyle(color: Color(0xff0A898D)),
+                            ),
                           ),
                         ),
                       ],

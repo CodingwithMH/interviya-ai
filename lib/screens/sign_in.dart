@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:interviya/data/models/user_model.dart';
 import 'package:interviya/data/providers/user_provider.dart';
 import 'package:interviya/data/services/auth_service.dart';
+import 'package:interviya/screens/forgot_password.dart';
 import 'package:interviya/screens/setup.dart';
 import 'package:interviya/screens/sign_up.dart';
 import 'package:interviya/widgets/custom_text_field.dart';
@@ -213,12 +214,35 @@ class _SignInState extends State<SignIn> {
                       ),
                       obscureText: obsecure,
                       validator: (value) {
-                        // FIXED: Catches empty inputs or strings with only whitespace
                         if (value == null || value.trim().isEmpty) {
                           return "Please enter your password";
                         }
                         return null;
                       },
+                    ),
+                    const SizedBox(height: 8), 
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(4),
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                          child: Text(
+                            "Forgot Password?",
+                            style: TextStyle(
+                              color: Color(0xff0A898D),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton(
@@ -293,9 +317,13 @@ class _SignInState extends State<SignIn> {
                               ),
                             );
                           },
-                          child: const Text(
-                            "Sign Up",
-                            style: TextStyle(color: Color(0xff0A898D)),
+                          borderRadius: BorderRadius.circular(4),
+                          child: Padding(
+                            padding: const EdgeInsets.all(2.0),
+                            child: const Text(
+                              "Sign Up",
+                              style: TextStyle(color: Color(0xff0A898D)),
+                            ),
                           ),
                         ),
                       ],
