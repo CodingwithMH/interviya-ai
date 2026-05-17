@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:interviya/data/providers/user_provider.dart';
 import 'package:interviya/widgets/Experience_setup.dart';
 import 'package:interviya/widgets/goal_setup.dart';
 import 'package:interviya/widgets/profile_setup.dart';
@@ -11,6 +12,7 @@ import 'package:interviya/data/models/user_model.dart';
 import 'package:interviya/data/services/auth_service.dart';
 import 'package:interviya/data/services/cloudinary_service.dart';
 import 'package:interviya/widgets/main_wrapper.dart';
+import 'package:provider/provider.dart';
 
 class Setup extends StatefulWidget {
   const Setup({super.key});
@@ -21,13 +23,29 @@ class Setup extends StatefulWidget {
 class _SetupState extends State<Setup> {
   File? localImageFile;
   bool isUploading = false;
-  UserModel user = UserModel();
+  late UserModel user;
   int currentIndex = 0;
   final List<String> stepHeadings = [
     "Setup Your Profile",
     "What's your experience level?",
     "What's your main goal?",
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    
+    final providerUser = Provider.of<UserProvider>(context, listen: false).currentUser;
+
+    user = UserModel(
+      uid: providerUser?.uid,
+      email: providerUser?.email,
+      fullName: providerUser?.fullName,
+      role: providerUser?.role ?? 'user',
+      hasFinishedSetup: false,
+    );
+  }
+
   void handleNext() async {
     if (currentIndex < 2) {
       setState(() {
@@ -50,61 +68,61 @@ class _SetupState extends State<Setup> {
   }
 
   Future<void> _finalizeProfile() async {
-    setState(() => isUploading = true);
+  setState(() => isUploading = true);
 
-    try {
-      if (localImageFile != null) {
-        String? uploadedUrl = await CloudinaryService.uploadImage(
-          localImageFile!,
-        );
-        if (uploadedUrl != null) {
-          user.avatarPath = uploadedUrl;
-        }
-      }
-
-      UserModel finalUser = UserModel(
-        fullName: user.fullName,
-        currentStatus: user.currentStatus,
-        targetRole: user.targetRole,
-        experienceLevel: user.experienceLevel,
-        mainGoal: user.mainGoal,
-        avatarPath: user.avatarPath,
-        hasFinishedSetup: true,
+  try {
+    if (localImageFile != null) {
+      String? uploadedUrl = await CloudinaryService.uploadImage(
+        localImageFile!,
       );
-
-      String? result = await AuthService().updateUserProfile(finalUser);
-
-      if (result == "success") {
-        print("Profile successfully updated in Firestore");
-
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const MainWrapper()),
-          );
-        }
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Failed to save profile: $result")),
-          );
-        }
+      if (uploadedUrl != null) {
+        user.avatarPath = uploadedUrl;
       }
-    } catch (e) {
-      print("Error during finalization: $e");
-    } finally {
-      if (mounted) setState(() => isUploading = false);
     }
-  }
 
-  Widget getStepComponent() {
+    user.hasFinishedSetup = true;
+
+    String? result = await AuthService().updateUserProfile(user);
+
+    if (result == "success") {
+      print("Profile successfully updated in Firestore");
+
+      if (mounted) {
+        Provider.of<UserProvider>(context, listen: false).setUser(user);
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainWrapper()),
+        );
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to save profile: $result")),
+        );
+      }
+    }
+  } catch (e) {
+    print("Error during finalization: $e");
+  } finally {
+    if (mounted) setState(() => isUploading = false);
+  }
+}
+
+ Widget getStepComponent() {
     switch (currentIndex) {
       case 0:
         return ProfileSetup(
           currentUser: user,
           localImageFile: localImageFile,
           onFileChanged: (File file) => setState(() => localImageFile = file),
-          onUpdate: (updatedData) => user = updatedData,
+          onUpdate: (updatedData) => setState(() {
+            user = user.copyWith(
+              fullName: updatedData.fullName,
+              currentStatus: updatedData.currentStatus,
+              targetRole: updatedData.targetRole,
+            );
+          }),
           onNext: handleNext,
           onPrevious: handlePrevious,
         );
@@ -123,7 +141,7 @@ class _SetupState extends State<Setup> {
           onPrevious: handlePrevious,
         );
       default:
-        return Container();
+        return const SizedBox.shrink();
     }
   }
 

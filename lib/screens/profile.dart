@@ -1,12 +1,19 @@
+import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:interviya/data/models/user_model.dart';
 import 'package:interviya/data/providers/user_provider.dart';
 import 'package:interviya/data/services/auth_service.dart';
+import 'package:interviya/data/services/cloudinary_service.dart';
 import 'package:interviya/widgets/custom_appbar.dart';
+import 'package:interviya/widgets/edit_profile_dialog.dart';
 import 'package:provider/provider.dart';
 
 class Profile extends StatefulWidget {
   final VoidCallback onBack;
-    const Profile({super.key, required this.onBack});
+  const Profile({super.key, required this.onBack});
 
   @override
   State<Profile> createState() => _ProfileState();
@@ -14,47 +21,125 @@ class Profile extends StatefulWidget {
 
 class _ProfileState extends State<Profile> {
   bool _isLoggingOut = false;
+  final _picker = ImagePicker();
 
-void _handleLogout() async {
-  setState(() => _isLoggingOut = true);
-  
-  String? result = await AuthService().signOutUser();
-  
-  if (mounted) setState(() => _isLoggingOut = false);
+  void _handleLogout() async {
+    setState(() => _isLoggingOut = true);
 
-  if (result == "success") {
-    if (mounted) {
-      Navigator.of(context).pushNamedAndRemoveUntil('/signin', (route) => false); 
-    }
-  } else {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Logout failed: $result"), backgroundColor: Colors.redAccent),
-      );
+    String? result = await AuthService().signOutUser();
+
+    if (mounted) setState(() => _isLoggingOut = false);
+
+    if (result == "success") {
+      if (mounted) {
+        Navigator.of(
+          context,
+        ).pushNamedAndRemoveUntil('/signin', (route) => false);
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Logout failed: $result"),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
     }
   }
-}
+
+  Future<void> _updateProfilePicture() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile == null) return;
+
+    final file = File(pickedFile.path);
+    String? imageUrl = await CloudinaryService.uploadImage(file);
+    if (imageUrl == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Failed to upload image")));
+      }
+      return;
+    }
+
+    if (!mounted) return;
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+    userProvider.updateAvatar(imageUrl);
+
+    try {
+      final uid = userProvider.currentUser?.uid;
+      if (uid != null) {
+        await FirebaseFirestore.instance.collection('users').doc(uid).update({
+          'avatarPath': imageUrl,
+        });
+
+        debugPrint("Avatar image updated successfully in database.");
+      }
+    } catch (e) {
+      debugPrint("Failed to persist avatar selection path payload: $e");
+    }
+  }
+
+  Future<void> _showEditProfileDialog(UserModel currentUser) async {
+    final Map<String, String>? updatedData =
+        await showDialog<Map<String, String>>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => EditProfileDialog(currentUser: currentUser),
+        );
+
+    if (updatedData != null && mounted) {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+      userProvider.updateProfileFields(
+        fullName: updatedData['fullName'],
+        targetRole: updatedData['targetRole'],
+        experienceLevel: updatedData['experienceLevel'],
+      );
+
+      try {
+        final uid = currentUser.uid;
+        if (uid != null) {
+          await FirebaseFirestore.instance.collection('users').doc(uid).update({
+            'fullName': updatedData['fullName'],
+            'targetRole': updatedData['targetRole'],
+            'experienceLevel': updatedData['experienceLevel'],
+          });
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Profile updated successfully!")),
+            );
+          }
+        }
+      } catch (e) {
+        debugPrint("Failed to sync edited profile fields with database: $e");
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
     final user = userProvider.currentUser;
     return Scaffold(
       backgroundColor: Color(0xFFF8FAFF),
-      appBar: CustomAppbar(text:"Profile", onBack: widget.onBack),
+      appBar: CustomAppbar(text: "Profile", onBack: widget.onBack),
       body: SingleChildScrollView(
         child: Column(
           children: [
             SizedBox(height: 30),
-           
+
             Center(
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-              
                   Container(
-                    width: 155, 
+                    width: 155,
                     height: 155,
-                    decoration:   BoxDecoration(
+                    decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
@@ -63,41 +148,41 @@ void _handleLogout() async {
                       ),
                     ),
                     child: Container(
-                      margin:   EdgeInsets.all(12), 
-                      decoration:   BoxDecoration(
+                      margin: EdgeInsets.all(12),
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: Colors.white,
                       ),
-                      child:   CircleAvatar(
+                      child: CircleAvatar(
                         radius: 60,
-                        backgroundImage: (user?.avatarPath != null && user!.avatarPath!.isNotEmpty)
-                                  ? NetworkImage(user.avatarPath!) as ImageProvider
-                                  : const AssetImage("assets/images/user.png"),
+                        backgroundImage:
+                            (user?.avatarPath != null &&
+                                user!.avatarPath!.isNotEmpty)
+                            ? NetworkImage(user.avatarPath!) as ImageProvider
+                            : const AssetImage("assets/images/user.png"),
                       ),
                     ),
                   ),
 
-               
                   Positioned(
                     bottom: 8,
                     right: 8,
-                    child: Container(
-                      padding:   EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            blurRadius: 5,
-                            color: Colors.black.withValues(alpha: 0.2),
-                            offset:   Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child:   Icon(
-                        Icons.edit,
-                        color: Colors.orange,
-                        size: 22,
+                    child: GestureDetector(
+                      onTap: _updateProfilePicture,
+                      child: Container(
+                        padding: EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              blurRadius: 5,
+                              color: Colors.black.withValues(alpha: 0.2),
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Icon(Icons.edit, color: Colors.orange, size: 22),
                       ),
                     ),
                   ),
@@ -135,18 +220,32 @@ void _handleLogout() async {
                     ),
                     child: Column(
                       children: [
-                              _buildDetailRow("Full Name:", user?.fullName ?? "N/A"),
-                              _buildDetailRow("Target Role:", user?.targetRole ?? "Not Set"),
-                              _buildDetailRow("Experience Level:", user?.experienceLevel ?? "Not Set"),
-                              _buildDetailRow("Email:", user?.email ?? "N/A", isLast: true),
-                            ],
+                        _buildDetailRow("Full Name:", user?.fullName ?? "N/A"),
+                        _buildDetailRow(
+                          "Target Role:",
+                          user?.targetRole ?? "Not Set",
+                        ),
+                        _buildDetailRow(
+                          "Experience Level:",
+                          user?.experienceLevel ?? "Not Set",
+                        ),
+                        _buildDetailRow(
+                          "Email:",
+                          user?.email ?? "N/A",
+                          isLast: true,
+                        ),
+                      ],
                     ),
                   ),
                   Positioned(
                     bottom: -25,
                     right: 20,
                     child: FloatingActionButton.small(
-                      onPressed: () {},
+                      onPressed: () {
+                        if (user != null) {
+                          _showEditProfileDialog(user);
+                        }
+                      },
                       backgroundColor: Color(0xFF0A898D),
                       child: Icon(Icons.edit, color: Colors.white),
                     ),
@@ -154,91 +253,7 @@ void _handleLogout() async {
                 ],
               ),
             ),
-
-            SizedBox(height: 50),
-
-   
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Container(
-                padding: EdgeInsets.all(20),
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(25),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 15,
-                      offset: Offset(0, 5),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Skill Badges",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E293B),
-                          ),
-                        ),
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.verified,
-                                color: Color(0xFF0A898D),
-                                size: 20,
-                              ),
-                              SizedBox(width: 4),
-                              Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  color: Colors.grey.shade200,
-                                ),
-
-                                child: Text(
-                                  " AI Verified",
-                                  style: TextStyle(fontSize: 10),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 15),
-                    Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
-                      children: [
-                        _buildBadge("Problem Solver", Color(0xFF0A898D)),
-                        _buildBadge("Clean Coder", Color(0xFF0A898D)),
-                        _buildBadge("Fast Communicator", Color(0xFF0A898D)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 15),
+            const SizedBox(height: 50),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: SizedBox(
@@ -254,13 +269,19 @@ void _handleLogout() async {
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  icon: _isLoggingOut 
+                  icon: _isLoggingOut
                       ? const SizedBox(
-                          width: 20, 
-                          height: 20, 
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.redAccent)
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.redAccent,
+                          ),
                         )
-                      : const Icon(Icons.logout_rounded, color: Colors.redAccent),
+                      : const Icon(
+                          Icons.logout_rounded,
+                          color: Colors.redAccent,
+                        ),
                   label: Text(
                     _isLoggingOut ? "Logging out..." : "Log Out",
                     style: const TextStyle(
@@ -303,24 +324,6 @@ void _handleLogout() async {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildBadge(String label, Color color) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: color,
-          fontWeight: FontWeight.bold,
-          fontSize: 13,
-        ),
       ),
     );
   }

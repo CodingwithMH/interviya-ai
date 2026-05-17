@@ -1,14 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:interviya/data/models/history_model.dart';
 import 'package:interviya/data/providers/interview_provider.dart';
+import 'package:interviya/data/providers/user_provider.dart';
 import 'package:interviya/screens/interview_summary.dart';
 import 'package:flutter/material.dart';
 import 'package:interviya/widgets/circle_arcs.dart';
 import 'package:interviya/widgets/voice_to_text.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
-
 
 class InterviewRoom extends StatefulWidget {
   const InterviewRoom({super.key});
@@ -19,12 +21,10 @@ class InterviewRoom extends StatefulWidget {
 
 class _InterviewRoomState extends State<InterviewRoom>
     with SingleTickerProviderStateMixin {
-  // int currentQuestionIndex = 0;
   Timer? _timer;
   int _startSeconds = 100;
   late AnimationController _rotationController;
-
-bool _isSubmitting = false;
+  bool _isSubmitting = false;
 
   int getTotalSeconds(InterviewProvider provider) {
     int minutes = int.tryParse(provider.duration) ?? 0;
@@ -48,7 +48,7 @@ bool _isSubmitting = false;
 
     _rotationController = AnimationController(
       vsync: this,
-      duration: Duration(seconds: 8),
+      duration: const Duration(seconds: 8),
     )..repeat();
   }
 
@@ -59,7 +59,7 @@ bool _isSubmitting = false;
   }
 
   void startTimer() {
-    _timer?.cancel(); // Safety cleanup
+    _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_startSeconds <= 0) {
         final provider = Provider.of<InterviewProvider>(context, listen: false);
@@ -76,21 +76,14 @@ bool _isSubmitting = false;
   }
 
   void nextQuestion() {
-    // Instantly stop the old running background clock sequence
     _timer?.cancel();
-
     final provider = Provider.of<InterviewProvider>(context, listen: false);
 
     if (provider.currentQuestionIndex < provider.questions.length - 1) {
-      provider.nextQuestion(); // Increment Provider question slot index
-
+      provider.nextQuestion();
       setState(() {
-        _startSeconds = getSecondsPerQuestion(
-          provider,
-        ); // Reset visual countdown values safely
+        _startSeconds = getSecondsPerQuestion(provider);
       });
-
-      // Spin up a brand new fresh room clock tracking track
       startTimer();
     } else {
       _goToSummary();
@@ -99,9 +92,59 @@ bool _isSubmitting = false;
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _timer
+        ?.cancel(); // Critical: prevents background timer loops from running post-dispose
     _rotationController.dispose();
     super.dispose();
+  }
+
+  void _saveIncompleteSession() async {
+    final provider = Provider.of<InterviewProvider>(context, listen: false);
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+    String currentUserId = userProvider.currentUser?.uid ?? '';
+    debugPrint("currentUserId: $currentUserId");
+    if (currentUserId.isEmpty) return; // Prevent empty writes
+
+    List<String> rawQuestions = provider.questions
+        .map((q) => q.toString())
+        .toList();
+    List<String> rawAnswers = provider.answers.map((ans) {
+      return ans.trim().isEmpty
+          ? "No answer recorded / Session abandoned"
+          : ans.trim();
+    }).toList();
+
+    int answeredCount = provider.currentQuestionIndex;
+    int percentage = ((answeredCount / rawQuestions.length) * 100).round();
+
+    // FIX 1: Initializing HistoryModel parameters with clean sequential ordering syntax
+    final historyItem = HistoryModel(
+      userId: currentUserId,
+      interviewData: const {'status': 'Incomplete Early Exit'},
+      mode: provider.mode,
+      difficulty: provider.difficulty,
+      duration: getTotalSeconds(provider),
+      questionCount: rawQuestions.length,
+      questions: rawQuestions,
+      userAnswers: rawAnswers,
+      overallScore: '0',
+      completionPercentage: percentage,
+      interviewTitle: provider.interviewData["title"],
+      timestamp: DateTime.now(),
+    );
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUserId)
+          .collection('history')
+          .add(historyItem.toMap());
+
+      debugPrint("Successfully stored incomplete history item.");
+    } catch (e) {
+      debugPrint("Failed to log skipped workspace session: $e");
+    }
   }
 
   @override
@@ -114,7 +157,7 @@ bool _isSubmitting = false;
       );
     }
     return Scaffold(
-      backgroundColor: Color(0xFFF8FAFF),
+      backgroundColor: const Color(0xFFF8FAFF),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -123,7 +166,7 @@ bool _isSubmitting = false;
                 constraints: BoxConstraints(minHeight: constraints.maxHeight),
                 child: IntrinsicHeight(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(
+                    padding: const EdgeInsets.symmetric(
                       horizontal: 24.0,
                       vertical: 16.0,
                     ),
@@ -133,8 +176,9 @@ bool _isSubmitting = false;
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             IconButton(
-                              onPressed: () => Navigator.pop(context),
-                              icon: Icon(
+                              // FIXED: Prevents premature popping without clearing state or asking confirmation
+                              onPressed: _confirmEndSession,
+                              icon: const Icon(
                                 Icons.close,
                                 color: Color(0xff94A3B8),
                                 size: 28,
@@ -142,7 +186,7 @@ bool _isSubmitting = false;
                             ),
                             Text(
                               "Question ${provider.currentQuestionIndex + 1} of ${provider.questions.length}",
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xff94A3B8),
@@ -150,15 +194,15 @@ bool _isSubmitting = false;
                             ),
                             Row(
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.timer_outlined,
                                   color: Colors.redAccent,
                                   size: 20,
                                 ),
-                                SizedBox(width: 4),
+                                const SizedBox(width: 4),
                                 Text(
                                   formatTime(_startSeconds),
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: Colors.redAccent,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 18,
@@ -168,7 +212,7 @@ bool _isSubmitting = false;
                             ),
                           ],
                         ),
-                        Spacer(),
+                        const Spacer(),
                         Stack(
                           alignment: Alignment.center,
                           children: [
@@ -179,28 +223,29 @@ bool _isSubmitting = false;
                                   angle:
                                       _rotationController.value * 2 * math.pi,
                                   child: CustomPaint(
-                                    size: Size(220, 220),
+                                    size: const Size(220, 220),
                                     painter: CircleArcs(),
                                   ),
                                 );
                               },
                             ),
-
                             Container(
                               height: 130,
                               width: 130,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: Color(0xFF0A898D).withValues(alpha: 0.4),
+                                color: const Color(
+                                  0xFF0A898D,
+                                ).withValues(alpha: 0.4),
                                 border: Border.all(
-                                  color: Color(
+                                  color: const Color(
                                     0xff0A898D,
                                   ).withValues(alpha: 0.5),
                                   width: 2.0,
                                 ),
                               ),
                             ),
-                            CircleAvatar(
+                            const CircleAvatar(
                               radius: 50,
                               backgroundColor: Colors.white,
                               child: Icon(
@@ -211,37 +256,41 @@ bool _isSubmitting = false;
                             ),
                           ],
                         ),
-                        SizedBox(height: 50),
+                        const SizedBox(height: 50),
                         Text(
                           provider.questions[provider.currentQuestionIndex],
                           textAlign: TextAlign.center,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w800,
                             color: Color(0xff1E293B),
                             height: 1.3,
                           ),
                         ),
-                        SizedBox(height: 30),
+                        const SizedBox(height: 30),
                         Container(
-                          padding: EdgeInsets.symmetric(
+                          padding: const EdgeInsets.symmetric(
                             horizontal: 20,
                             vertical: 10,
                           ),
                           decoration: BoxDecoration(
-                            color: Color(0xff0A898D).withValues(alpha: 0.12),
+                            color: const Color(
+                              0xff0A898D,
+                            ).withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(30),
                           ),
                           child: Text(
                             "AI is listening for Keywords",
                             style: TextStyle(
-                              color: Color(0xff0A898D).withValues(alpha: 0.8),
+                              color: const Color(
+                                0xff0A898D,
+                              ).withValues(alpha: 0.8),
                               fontWeight: FontWeight.w600,
                               fontSize: 14,
                             ),
                           ),
                         ),
-                        Spacer(),
+                        const Spacer(),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
@@ -262,11 +311,7 @@ bool _isSubmitting = false;
                                         context,
                                         listen: false,
                                       );
-
-                                  // Explicitly commit the text payload into your global state model first
                                   provider.updateCurrentAnswer(finalSpokenText);
-
-                                  // Move to the next question step securely
                                   nextQuestion();
                                 },
                               ),
@@ -281,7 +326,7 @@ bool _isSubmitting = false;
                             ),
                           ],
                         ),
-                        SizedBox(height: 20),
+                        const SizedBox(height: 20),
                       ],
                     ),
                   ),
@@ -296,53 +341,92 @@ bool _isSubmitting = false;
 
   void _goToSummary() async {
     _timer?.cancel();
-    
-    // 1. CRITICAL: Check the guard clause BEFORE spawning any dialogs
     if (_isSubmitting) return;
 
     setState(() {
       _isSubmitting = true;
     });
 
-    // Show the loading dialog immediately after passing the guard
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => const Center(
-        child: CircularProgressIndicator(
-          color: Color(0xFF0A898D),
-        ),
+        child: CircularProgressIndicator(color: Color(0xFF0A898D)),
       ),
     );
 
     final provider = Provider.of<InterviewProvider>(context, listen: false);
-
-    List<String> rawQuestions = provider.questions.map((q) => q.toString()).toList();
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    List<String> rawQuestions = provider.questions
+        .map((q) => q.toString())
+        .toList();
     List<String> rawAnswers = provider.answers.map((ans) {
-      return ans.trim().isEmpty ? "No answer recorded / Question skipped" : ans.trim();
+      return ans.trim().isEmpty
+          ? "No answer recorded / Question skipped"
+          : ans.trim();
     }).toList();
 
     try {
-      final url = Uri.parse('https://codewithmh.pythonanywhere.com/submit-interview');
-      
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'questions': rawQuestions,
-          'answers': rawAnswers,
-        }),
-      ).timeout(const Duration(seconds: 45));
+      final url = Uri.parse(
+        'https://codewithmh.pythonanywhere.com/submit-interview',
+      );
 
-      // 2. CRITICAL: Dismiss the loading dialog as soon as the network call returns
-      if (mounted) Navigator.pop(context);
+      final response = await http
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'questions': rawQuestions,
+              'answers': rawAnswers,
+            }),
+          )
+          .timeout(const Duration(seconds: 45));
+
+      if (mounted) Navigator.pop(context); // Dismiss loading dialog
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> evaluationMetrics = jsonDecode(response.body);
-        print("$evaluationMetrics");
+        final Map<String, dynamic> evaluationMetrics = jsonDecode(
+          response.body,
+        );
+
+        try {
+          String currentUserId = userProvider.currentUser?.uid ?? '';
+          if (currentUserId.isNotEmpty) {
+            String? extractedScore =
+                evaluationMetrics['overall_score']?.toString() ??
+                evaluationMetrics['score']?.toString();
+
+            final historyItem = HistoryModel(
+              userId: currentUserId,
+              interviewData: evaluationMetrics,
+              mode: provider.mode,
+              difficulty: provider.difficulty,
+              duration: getTotalSeconds(provider),
+              questionCount: rawQuestions.length,
+              questions: rawQuestions,
+              userAnswers: rawAnswers,
+              overallScore: extractedScore,
+              completionPercentage: 100,
+              interviewTitle: provider.interviewData["title"],
+              timestamp: DateTime.now(),
+            );
+
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(currentUserId)
+                .collection('history')
+                .add(historyItem.toMap());
+
+            debugPrint("Successfully stored completed history item.");
+          }
+        } catch (dbError) {
+          debugPrint(
+            "Failed to write document payload history entry: $dbError",
+          );
+        }
+
         if (!mounted) return;
 
-        // Now safe to replace the screen since the dialog is gone
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -356,7 +440,6 @@ bool _isSubmitting = false;
         _showErrorSnackbar("Server Evaluation Error (${response.statusCode})");
       }
     } catch (e) {
-      // 3. CRITICAL: Also dismiss the dialog if a network exception/timeout occurs
       if (mounted) Navigator.pop(context);
       _showErrorSnackbar("Failed to connect to evaluation engine.");
     } finally {
@@ -367,6 +450,7 @@ bool _isSubmitting = false;
       }
     }
   }
+
   void _showErrorSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), backgroundColor: Colors.redAccent),
@@ -377,22 +461,27 @@ bool _isSubmitting = false;
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text("End Interview?"),
-        content: Text("Are you sure you want to end this session?"),
+        title: const Text("End Interview?"),
+        content: const Text(
+          "Are you sure you want to end this session prematurely? Your progress will be saved as incomplete.",
+        ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("Cancel"),
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text("Cancel"),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Color(0xff0A898D)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xff0A898D),
+            ),
             onPressed: () {
+              _saveIncompleteSession();
+              Navigator.pop(dialogContext);
               Navigator.pop(context);
-              _goToSummary();
             },
-            child: Text("Confirm"),
+            child: const Text("Confirm"),
           ),
         ],
       ),
@@ -414,7 +503,7 @@ bool _isSubmitting = false;
             backgroundColor: color.withValues(alpha: 0.1),
             child: Icon(icon, color: color, size: 26),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
             label,
             style: TextStyle(

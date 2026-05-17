@@ -6,6 +6,7 @@ import 'package:interviya/data/models/interview_model.dart';
 import 'package:interviya/data/providers/interview_provider.dart';
 import 'package:interviya/screens/interview_room.dart';
 import 'package:interviya/widgets/custom_appbar.dart';
+import 'package:interviya/widgets/main_wrapper.dart';
 import 'package:interviya/widgets/mode_card.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
@@ -38,7 +39,13 @@ class _InterviewSetupState extends State<InterviewSetup> {
       backgroundColor: Color(0xFFF8FAFF),
       appBar: CustomAppbar(
         text: "Setup Interview",
-        onBack: () => Navigator.pop(context),
+        onBack: () {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => MainWrapper()),
+            (route) => false,
+          );
+        },
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -72,7 +79,7 @@ class _InterviewSetupState extends State<InterviewSetup> {
                       child: Text(
                         widget.interview.title,
                         style: TextStyle(
-                          fontSize: 24,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF0A898D),
                         ),
@@ -255,16 +262,15 @@ class _InterviewSetupState extends State<InterviewSetup> {
                     bool isSuccess = false;
 
                     try {
-                      // Note: Use 10.0.2.2 instead of localhost if using an Android Emulator
                       var url = Uri.parse(
                         'https://codewithmh.pythonanywhere.com/get-questions',
                       );
                       Map<String, dynamic> cleanInterviewData = {
-                  "title": widget.interview.title,
-                  "categoryId": widget.interview.categoryId, // 3. FIXED: Never returns null now
-                  "description": widget.interview.description,
-                };
-                      print("$cleanInterviewData + $selectedMode ");
+                        "title": widget.interview.title,
+                        "categoryId": widget.interview.categoryId,
+                        "description": widget.interview.description,
+                      };
+
                       var response = await http
                           .post(
                             url,
@@ -304,8 +310,28 @@ class _InterviewSetupState extends State<InterviewSetup> {
                       return;
                     }
 
+                    try {
+                      setState(() {
+                        widget.interview.count += 1;
+                      });
+
+                      await FirebaseFirestore.instance
+                          .collection('interviews')
+                          .doc(
+                            widget.interview.title,
+                          )
+                          .update({'count': FieldValue.increment(1)});
+
+                      print("Interview count incremented successfully.");
+                    } catch (dbError) {
+                      print(
+                        "Failed to increment counter in Firestore: $dbError",
+                      );
+                    }
+
                     provider.updateSession(
-                      data: widget.interview.toMap(),
+                      data: widget.interview
+                          .toMap(),
                       mode: selectedMode,
                       diff: difficulty,
                       user: loggedInUser,

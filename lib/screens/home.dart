@@ -1,12 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:interviya/data/models/interview_model.dart';
+import 'package:interviya/data/providers/history_provider.dart';
 import 'package:interviya/data/providers/user_provider.dart';
 import 'package:interviya/screens/interview_setup.dart';
 import 'package:interviya/screens/feedback.dart';
-import 'package:interviya/screens/help.dart';
-import 'package:interviya/screens/upload.dart';
+import 'package:interviya/screens/interviews_management.dart';
 import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -113,7 +114,7 @@ class _HomeState extends State<Home> {
                   SizedBox(height: 15),
                   _buildSearchBar(),
                   SizedBox(height: 15),
-                  _buildCategoryFilters(),
+                  isDataLoading ? _buildCategorySkeletons() : _buildCategoryFilters(),
                   SizedBox(height: 15),
                   Text(
                     "Recommended Interviews",
@@ -125,9 +126,17 @@ class _HomeState extends State<Home> {
                   ),
                   SizedBox(height: 15),
 
-                  ...filteredInterviews.map(
-                    (item) => _buildInterviewCard(item),
-                  ),
+                  if (isDataLoading)
+                    ...List.generate(3, (index) => _buildInterviewCardSkeleton())
+                  else if (filteredInterviews.isEmpty)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 20),
+                        child: Text("No interviews matched your criteria."),
+                      ),
+                    )
+                  else
+                    ...filteredInterviews.map((item) => _buildInterviewCard(item)),
                   SizedBox(height: 100),
                 ],
               ),
@@ -200,15 +209,6 @@ class _HomeState extends State<Home> {
                   ),
                 ),
 
-                IconButton(
-                  icon: Icon(
-                    Icons.notifications,
-                    color: Color(0xFF94A3B8),
-                    size: 22,
-                  ),
-                  onPressed: () {},
-                ),
-
                 PopupMenuButton<String>(
                   padding: EdgeInsets.zero,
                   color: Colors.white,
@@ -223,10 +223,10 @@ class _HomeState extends State<Home> {
                     size: 22,
                   ),
                   onSelected: (value) {
-                    if (value == 'upload') {
+                    if (value == 'interviews') {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => Upload()),
+                        MaterialPageRoute(builder: (context) => ManageInterviews(onBack: ()=> Navigator.pop(context),)),
                       );
                     } else if (value == 'feedback') {
                       Navigator.push(
@@ -235,27 +235,22 @@ class _HomeState extends State<Home> {
                           builder: (context) => FeedbackScreen(),
                         ),
                       );
-                    } else if (value == 'help') {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => Help()),
-                      );
-                    }
+                    } 
                   },
                   itemBuilder: (context) => [
                     if (currentUser?.isAdmin ?? false)
                       const PopupMenuItem(
-                        value: 'upload',
+                        value: 'interviews',
                         child: Row(
                           children: [
                             Icon(
-                              Icons.cloud_upload_outlined,
+                              Icons.list,
                               size: 20,
                               color: Color(0xFF0A898D),
                             ),
                             SizedBox(width: 12),
                             Text(
-                              'Upload Item',
+                              'Interviews Management',
                               style: TextStyle(
                                 color: Color(0xFF1E293B),
                                 fontSize: 14,
@@ -276,26 +271,6 @@ class _HomeState extends State<Home> {
                           SizedBox(width: 12),
                           Text(
                             'Feedback',
-                            style: TextStyle(
-                              color: Color(0xFF1E293B),
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'help',
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.help_outline_rounded,
-                            size: 20,
-                            color: Color(0xFF0A898D),
-                          ),
-                          SizedBox(width: 12),
-                          Text(
-                            'Help',
                             style: TextStyle(
                               color: Color(0xFF1E293B),
                               fontSize: 14,
@@ -341,60 +316,85 @@ class _HomeState extends State<Home> {
   }
 
   Widget _buildReadinessCard() {
+  final historyProvider = Provider.of<HistoryProvider>(context);
+  
+  if (historyProvider.isLoading) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(20),
+      height: 110,
       decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 10,
-            offset: Offset(0, 5),
-          ),
-        ],
-        gradient: LinearGradient(
-          colors: [Color(0xFF0CBABF), Color(0xFF0A898D)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
+        color: Colors.grey.shade200,
         borderRadius: BorderRadius.circular(25),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Current Readiness",
-                style: TextStyle(color: Colors.white70, fontSize: 14),
-              ),
-              SizedBox(height: 5),
-              Text(
-                "78%",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 40,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-
-          SizedBox(
-            height: 70,
-            width: 70,
-            child: CircularProgressIndicator(
-              value: 0.78,
-              strokeWidth: 8,
-              backgroundColor: Colors.white24,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-            ),
-          ),
-        ],
+      child: const Center(
+        child: CircularProgressIndicator(color: Color(0xFF0A898D)),
       ),
     );
   }
+
+  final int readinessScore = historyProvider.currentReadiness;
+  final double progressIndicatorValue = readinessScore / 100.0;
+
+  return Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.15),
+          blurRadius: 15,
+          offset: const Offset(0, 6),
+        ),
+      ],
+      gradient: const LinearGradient(
+        colors: [Color(0xFF0CBABF), Color(0xFF0A898D)],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+      ),
+      borderRadius: BorderRadius.circular(25),
+    ),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Current Readiness",
+              style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              "$readinessScore%",
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 40,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(
+          height: 70,
+          width: 70,
+          child: TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0.0, end: progressIndicatorValue),
+            duration: const Duration(milliseconds: 1200),
+            curve: Curves.easeOutCubic,
+            builder: (context, animatedValue, child) {
+              return CircularProgressIndicator(
+                value: animatedValue,
+                strokeWidth: 8,
+                backgroundColor: Colors.white24,
+                valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+              );
+            },
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildCategoryFilters() {
     return SingleChildScrollView(
@@ -476,7 +476,7 @@ class _HomeState extends State<Home> {
                     fontSize: 15,
                   ),
                 ),
-                const SizedBox(height: 2), // Tiny spacing buffer
+                const SizedBox(height: 2),
                 Text(
                   "${interview['count']} Interviews taken",
                   maxLines: 1,
@@ -507,6 +507,87 @@ class _HomeState extends State<Home> {
             ),
           ),
         ],
+      ),
+    );
+  }
+  Widget _buildCategorySkeletons() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const NeverScrollableScrollPhysics(),
+      child: Row(
+        children: List.generate(5, (index) {
+          return Shimmer.fromColors(
+            baseColor: Colors.grey.shade200,
+            highlightColor: Colors.grey.shade50,
+            child: Container(
+              margin: const EdgeInsets.only(right: 8),
+              width: index == 0 ? 50 : 90, // Varied chip widths for realistic UI look
+              height: 38,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildInterviewCardSkeleton() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade200,
+      highlightColor: Colors.grey.shade50,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          children: [
+            // Fake Mock Icon Box
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Fake Mock Text Block
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: double.infinity,
+                    height: 14,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: 120,
+                    height: 11,
+                    color: Colors.white,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 20),
+            // Fake Mock Action Circle Button
+            Container(
+              width: 36,
+              height: 36,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

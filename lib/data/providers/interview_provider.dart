@@ -8,7 +8,7 @@ class InterviewProvider extends ChangeNotifier {
   UserModel? currentUser;
   String duration;
   String questionCount;
-  
+
   List<String> questions = [];
   List<String> answers = [];
   int currentQuestionIndex = 0;
@@ -25,25 +25,20 @@ class InterviewProvider extends ChangeNotifier {
   void setQuestions(List<String> generatedQuestions) {
     questions = generatedQuestions;
     currentQuestionIndex = 0;
-    answers = List<String>.filled(generatedQuestions.length, ""); 
-    
+    answers = List<String>.filled(generatedQuestions.length, "");
+
     notifyListeners();
   }
 
-  void updateCurrentAnswer(
-    String transcribedText,
-  ) {
+  void updateCurrentAnswer(String transcribedText) {
     if (questions.isEmpty) return;
 
-    final currentAnswer =
-        answers[currentQuestionIndex];
+    final currentAnswer = answers[currentQuestionIndex];
 
     if (currentAnswer.isEmpty) {
-      answers[currentQuestionIndex] =
-          transcribedText;
+      answers[currentQuestionIndex] = transcribedText;
     } else {
-      answers[currentQuestionIndex] =
-          "$currentAnswer $transcribedText";
+      answers[currentQuestionIndex] = "$currentAnswer $transcribedText";
     }
 
     notifyListeners();
@@ -63,7 +58,7 @@ class InterviewProvider extends ChangeNotifier {
     }
   }
 
-  String get currentQuestionText => 
+  String get currentQuestionText =>
       questions.isNotEmpty ? questions[currentQuestionIndex] : "";
 
   String get currentAnswerText {
@@ -72,11 +67,11 @@ class InterviewProvider extends ChangeNotifier {
   }
 
   void updateSession({
-    required Map<String, dynamic> data, 
-    required String mode, 
-    required String diff, 
-    UserModel? user, 
-    required String duration, 
+    required Map<String, dynamic> data,
+    required String mode,
+    required String diff,
+    UserModel? user,
+    required String duration,
     required String questionCount,
   }) {
     this.interviewData = data;

@@ -21,14 +21,19 @@ class _InterviewSummaryScreenState extends State<InterviewSummaryScreen> {
     final session = Provider.of<InterviewProvider>(context);
 
     final int overallScore = widget.evaluationData['score_out_of_hundred'] ?? 0;
-    
-    final double confidence = (widget.evaluationData['confidence'] ?? 0.0) / 100.0;
-    final double technical = (widget.evaluationData['technical_accuracy'] ?? 0.0) / 100.0;
-    final double communication = (widget.evaluationData['communication'] ?? 0.0) / 100.0;
-    
-    final String insights = widget.evaluationData['ai_insights'] ?? "No evaluation details shared.";
-    
-    final List<dynamic> questionBreakdown = widget.evaluationData['question_wise_breakdown'] ?? [];
+
+    final double confidence =
+        (widget.evaluationData['confidence'] ?? 0.0) / 100.0;
+    final double technical =
+        (widget.evaluationData['technical_accuracy'] ?? 0.0) / 100.0;
+    final double communication =
+        (widget.evaluationData['communication'] ?? 0.0) / 100.0;
+
+    final String insights =
+        widget.evaluationData['ai_insights'] ?? "No evaluation details shared.";
+
+    final List<dynamic> questionBreakdown =
+        widget.evaluationData['question_wise_breakdown'] ?? [];
 
     final List<dynamic> displayedQuestions = isExpanded
         ? questionBreakdown
@@ -36,7 +41,10 @@ class _InterviewSummaryScreenState extends State<InterviewSummaryScreen> {
 
     return Scaffold(
       backgroundColor: Color(0xFFF8FAFF),
-      appBar: CustomAppbar(text:"Interview Summary", onBack: () => Navigator.pop(context)),
+      appBar: CustomAppbar(
+        text: "Interview Summary",
+        onBack: () => Navigator.pop(context),
+      ),
 
       body: SingleChildScrollView(
         padding: EdgeInsets.all(20.0),
@@ -63,7 +71,7 @@ class _InterviewSummaryScreenState extends State<InterviewSummaryScreen> {
                   Text(
                     "$overallScore/100",
                     style: TextStyle(
-                      fontSize: 48,
+                      fontSize: 40,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF0A898D),
                     ),
@@ -76,7 +84,7 @@ class _InterviewSummaryScreenState extends State<InterviewSummaryScreen> {
                     ),
                     child: Icon(
                       Icons.stars,
-                      size: 70,
+                      size: 60,
                       color: Color(0xFF0A898D),
                     ),
                   ),
@@ -86,8 +94,7 @@ class _InterviewSummaryScreenState extends State<InterviewSummaryScreen> {
             SizedBox(height: 40),
             IntrinsicHeight(
               child: Row(
-                crossAxisAlignment:
-                    CrossAxisAlignment.stretch, 
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _buildStatCard("Confidence", confidence),
                   SizedBox(width: 12),
@@ -133,12 +140,14 @@ class _InterviewSummaryScreenState extends State<InterviewSummaryScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "Question-wise Breakdown",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xff1E293B),
+                Expanded(
+                  child: Text(
+                    "Question-wise Breakdown",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xff1E293B),
+                    ),
                   ),
                 ),
                 TextButton(
@@ -158,7 +167,6 @@ class _InterviewSummaryScreenState extends State<InterviewSummaryScreen> {
               ],
             ),
             SizedBox(height: 20),
-
             Container(
               width: double.infinity,
               padding: EdgeInsets.all(20),
@@ -195,7 +203,11 @@ class _InterviewSummaryScreenState extends State<InterviewSummaryScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => InterviewSetup(interview: InterviewModel.fromMap(session.interviewData)),
+                          builder: (context) => InterviewSetup(
+                            interview: InterviewModel.fromMap(
+                              session.interviewData,
+                            ),
+                          ),
                         ),
                       );
                     },
@@ -322,4 +334,3 @@ class _InterviewSummaryScreenState extends State<InterviewSummaryScreen> {
     );
   }
 }
-

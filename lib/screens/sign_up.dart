@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:interviya/data/models/user_model.dart';
+import 'package:interviya/data/providers/user_provider.dart';
 import 'package:interviya/data/services/auth_service.dart';
+import 'package:interviya/screens/setup.dart';
 import 'package:interviya/screens/sign_in.dart';
 import 'package:interviya/widgets/custom_text_field.dart';
+import 'package:interviya/widgets/main_wrapper.dart';
+import 'package:provider/provider.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
@@ -12,11 +17,50 @@ class SignUp extends StatefulWidget {
 
 class _SignUpState extends State<SignUp> {
   bool isLoading = false;
+  bool isGoogleLoading = false;
   bool obsecure = true;
   TextEditingController username = TextEditingController();
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
   final _formkey = GlobalKey<FormState>();
+
+void handleGoogleSignIn() async {
+    setState(() => isGoogleLoading = true);
+    String? result = await AuthService().signInWithGoogle();
+    
+    if (result == "success") {
+      UserModel? userProfile = await AuthService().getUserData();
+      
+      if (!mounted) return;
+      setState(() => isGoogleLoading = false);
+      
+      if (userProfile != null) {
+        Provider.of<UserProvider>(context, listen: false).setUser(userProfile);
+
+        if (userProfile.hasFinishedSetup == true) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const MainWrapper()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const Setup()),
+          );
+        }
+      }
+    } else {
+      if (!mounted) return;
+      setState(() => isGoogleLoading = false);
+      if (result != "canceled") {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result ?? "An error occurred during Google Sign-In"),
+          ),
+        );
+      }
+    }
+  }
 
   void handleSignUp() async {
     if (!_formkey.currentState!.validate()) return;
@@ -28,21 +72,32 @@ class _SignUpState extends State<SignUp> {
       password: password.text,
       username: username.text,
     );
+    
     if (!mounted) return;
-    setState(() => isLoading = false);
-
+    
     if (result == "success") {
+      UserModel? userProfile = await AuthService().getUserData();
+      
+      if (!mounted) return;
+      setState(() => isLoading = false);
+
+      if (userProfile != null) {
+        Provider.of<UserProvider>(context, listen: false).setUser(userProfile);
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Account Created!"),
           duration: Duration(seconds: 2),
         ),
       );
+      
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => SignIn()),
+        MaterialPageRoute(builder: (context) => const Setup()),
       );
     } else {
+      setState(() => isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result ?? "An error occurred"),
@@ -166,7 +221,7 @@ class _SignUpState extends State<SignUp> {
                       onPressed: isLoading ? null : handleSignUp,
                       style: ElevatedButton.styleFrom(
                         elevation: 8,
-                        padding: EdgeInsets.symmetric(vertical: 12),
+                        padding: EdgeInsets.symmetric(vertical: 10),
                         backgroundColor: Color(0xff0A898D),
                         foregroundColor: Colors.white,
                       ),
@@ -185,18 +240,28 @@ class _SignUpState extends State<SignUp> {
                     ),
                     SizedBox(height: 15),
                     ElevatedButton.icon(
-                      onPressed: () {},
+                      onPressed: isGoogleLoading ? null : handleGoogleSignIn,
                       style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
                         backgroundColor: Colors.white,
+                        disabledBackgroundColor: Colors.white70,
                       ),
-                      icon: Image.asset(
-                        'assets/images/google_logo.png',
-                        height: 22,
-                      ),
+                      icon: isGoogleLoading
+                          ? const SizedBox(
+                              height: 22,
+                              width: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Color(0xff0A898D),
+                              ),
+                            )
+                          : Image.asset(
+                              'assets/images/google_logo.png',
+                              height: 22,
+                            ),
                       label: Text(
-                        'Sign in with Google',
-                        style: TextStyle(fontSize: 20, color: Colors.black),
+                        isLoading ? 'Connecting...' : 'Sign in with Google',
+                        style: const TextStyle(fontSize: 20, color: Colors.black),
                       ),
                     ),
                     SizedBox(height: 5),

@@ -34,17 +34,17 @@ void navigateToHome () {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-     backgroundColor: Color(0xffF8FAFC),
+     backgroundColor: Colors.white,
       body: IndexedStack(index: _selectedIndex, children: _screens),
       bottomNavigationBar: Container(
         height: 80,
-        margin:  EdgeInsets.fromLTRB(15, 0, 15, 20),
+        margin:  EdgeInsets.fromLTRB(5, 0, 5, 10),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(25),
           boxShadow: [
             BoxShadow(
-              color: Color(0xff1E293B).withValues(alpha: 0.1),
+              color: Color(0xff1E293B).withValues(alpha: 0.2),
               blurRadius: 20,
               offset: Offset(0, 4),
             ),
@@ -57,6 +57,7 @@ void navigateToHome () {
             currentIndex: _selectedIndex,
             selectedItemColor:  Color(0xFF0A898D),
             unselectedItemColor: Colors.grey.withValues(alpha: 0.6),
+            backgroundColor: Colors.white,
             onTap: (index) => setState(() => _selectedIndex = index),
             items:  [
               BottomNavigationBarItem(

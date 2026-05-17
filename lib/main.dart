@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:interviya/data/providers/history_provider.dart';
 import 'package:interviya/data/providers/interview_provider.dart';
 import 'package:interviya/data/providers/user_provider.dart'; // 👈 Import your new UserProvider
 import 'package:interviya/screens/sign_in.dart';
@@ -12,24 +13,21 @@ import 'firebase_options.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await dotenv.load(fileName: ".env");
 
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => UserProvider(),
-        ),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => HistoryProvider()),
         ChangeNotifierProvider(
           create: (_) => InterviewProvider(
             interviewData: {},
-            mode: "", 
+            mode: "",
             difficulty: "",
             duration: "",
-            questionCount: ""
+            questionCount: "",
           ),
         ),
       ],

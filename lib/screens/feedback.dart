@@ -1,3 +1,4 @@
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:interviya/widgets/custom_appbar.dart';
 
@@ -20,6 +21,36 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     "General Query",
   ];
 
+  Future<void> _sendEmailViaNativeApp() async {
+    final String adminEmail = "hammad90191@gmail.com";
+    final String subject = Uri.encodeComponent(
+      "[$selectedCategory] User Feedback - Interviya",
+    );
+
+    final String body = Uri.encodeComponent(
+      "User Email: ${_emailController.text}\n\n"
+      "Message:\n${_messageController.text}",
+    );
+
+    final Uri mailUri = Uri.parse(
+      "mailto:$adminEmail?subject=$subject&body=$body",
+    );
+
+    try {
+      if (await canLaunchUrl(mailUri)) {
+        await launchUrl(mailUri, mode: LaunchMode.externalApplication);
+      } else {
+        throw "Could not open mail application.";
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error opening mail client: $e")),
+        );
+      }
+    }
+  }
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -33,7 +64,10 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
 
     return Scaffold(
       backgroundColor: Color(0xFFF8FAFF),
-      appBar: CustomAppbar(text:"Setup Interview", onBack: () => Navigator.pop(context)),
+      appBar: CustomAppbar(
+        text: "Setup Interview",
+        onBack: () => Navigator.pop(context),
+      ),
       body: SingleChildScrollView(
         physics: BouncingScrollPhysics(),
         child: Padding(
@@ -109,15 +143,25 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                       borderRadius: BorderRadius.circular(15),
                     ),
                   ),
-                  onPressed: () {
-                    print("Category: $selectedCategory");
-                    print("Email: ${_emailController.text}");
-                    print("Message: ${_messageController.text}");
+                  onPressed: () async {
+                    if (_emailController.text.trim().isEmpty ||
+                        _messageController.text.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            "Please fill out all fields before sending.",
+                          ),
+                        ),
+                      );
+                      return;
+                    }
 
+                    await _sendEmailViaNativeApp();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text("Feedback Sent Successfully!")),
                     );
                   },
+
                   child: Text(
                     "Send Feedback",
                     style: TextStyle(

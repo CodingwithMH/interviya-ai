@@ -41,7 +41,7 @@ Widget build(BuildContext context) {
         filled: true,
         fillColor: Colors.white,
         
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),

@@ -1,33 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:interviya/data/models/history_model.dart';
+import 'package:intl/intl.dart';
 
 class HistoryItemSummary extends StatelessWidget {
-  final String title;
-  final String date;
-  final String difficulty;
-  final String duration;
-  final int score;
-  final int confidence;
-  final int technicalAccuracy;
-  final int communication;
-  final String wentWell;
-  final String toImprove;
+  final HistoryModel history;
 
-  const HistoryItemSummary({
-    super.key,
-    this.title = "Software Developer",
-    this.date = "3 October 2025",
-    this.difficulty = "Intermediate",
-    this.duration = "15 min",
-    this.score = 82,
-    this.confidence = 46,
-    this.technicalAccuracy = 60,
-    this.communication = 30,
-    this.wentWell = "Explained Concepts Clearly with Example",
-    this.toImprove = "Add more depth on pattern . Reduce filler words",
-  });
+  const HistoryItemSummary({super.key, required this.history});
 
   @override
   Widget build(BuildContext context) {
+    final String formattedDate = DateFormat(
+      'd MMMM yyyy',
+    ).format(history.timestamp);
+
+    final int? rawScore = history.interviewData['score_out_of_hundred'] as int?;
+    final bool isComplete = rawScore != null;
+    
+    final int calculatedScore = rawScore ?? history.completionPercentage;
+    final double confidenceMetric =
+        (history.interviewData['confidence'] as num?)?.toDouble() ?? 0.0;
+    final double accuracyMetric =
+        (history.interviewData['technical_accuracy'] as num?)?.toDouble() ??
+        0.0;
+    final double communicationMetric =
+        (history.interviewData['communication'] as num?)?.toDouble() ?? 0.0;
+
+    final String aiInsights =
+        history.interviewData['ai_insights'] ??
+        "No structural review evaluation text present.";
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFF),
       appBar: PreferredSize(
@@ -49,9 +50,7 @@ class HistoryItemSummary extends StatelessWidget {
             ),
           ),
           shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(
-              bottom: Radius.circular(25),
-            ),
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(25)),
           ),
         ),
       ),
@@ -62,13 +61,15 @@ class HistoryItemSummary extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. Course details Card
+              // 1. Title Meta Specifications Card Wrapper
               _buildCardWrapper(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      title,
+                      history.interviewTitle.isNotEmpty
+                          ? history.interviewTitle
+                          : 'Web Development Interview',
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -81,7 +82,7 @@ class HistoryItemSummary extends StatelessWidget {
                         _buildDot(),
                         const SizedBox(width: 6),
                         Text(
-                          date,
+                          formattedDate,
                           style: TextStyle(
                             color: Colors.grey.shade500,
                             fontWeight: FontWeight.w500,
@@ -92,7 +93,7 @@ class HistoryItemSummary extends StatelessWidget {
                         _buildDot(),
                         const SizedBox(width: 6),
                         Text(
-                          difficulty,
+                          history.difficulty,
                           style: TextStyle(
                             color: Colors.grey.shade500,
                             fontWeight: FontWeight.w500,
@@ -103,7 +104,7 @@ class HistoryItemSummary extends StatelessWidget {
                         _buildDot(),
                         const SizedBox(width: 6),
                         Text(
-                          duration,
+                          "${(history.duration / 60).round()} min",
                           style: TextStyle(
                             color: Colors.grey.shade500,
                             fontWeight: FontWeight.w500,
@@ -117,10 +118,9 @@ class HistoryItemSummary extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // 2. Score Section
-              const Text(
-                "Your Score",
-                style: TextStyle(
+              Text(
+                isComplete ? "Your Score" : "Interview Status",
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF1E293B),
@@ -131,35 +131,62 @@ class HistoryItemSummary extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      "$score/100",
-                      style: const TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF0A898D),
-                      ),
-                    ),
-                    Container(
-                      height: 52,
-                      width: 52,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFD2EFF0),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.workspace_premium_rounded,
+                    if (isComplete) ...[
+                      Text(
+                        "$calculatedScore/100",
+                        style: const TextStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.w800,
                           color: Color(0xFF0A898D),
-                          size: 30,
                         ),
                       ),
-                    ),
+                      Container(
+                        height: 52,
+                        width: 52,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFD2EFF0),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.workspace_premium_rounded,
+                            color: Color(0xFF0A898D),
+                            size: 30,
+                          ),
+                        ),
+                      ),
+                    ] else ...[
+                      // Beautiful UI State for Incomplete Sessions
+                      const Text(
+                        "Incomplete",
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFFEF4444), // Crimson Alert Red
+                        ),
+                      ),
+                      Container(
+                        height: 52,
+                        width: 52,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFFEE2E2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.assignment_late_rounded,
+                            color: Color(0xFFEF4444),
+                            size: 26,
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
               const SizedBox(height: 24),
 
-              // 3. Performance Section
+              // 3. Performance Metrics Linear Progress Mapping Sections
               const Text(
                 "Performance",
                 style: TextStyle(
@@ -172,17 +199,17 @@ class HistoryItemSummary extends StatelessWidget {
               _buildCardWrapper(
                 child: Column(
                   children: [
-                    _buildMetricRow("Confidence", confidence),
+                    _buildMetricRow("Confidence", confidenceMetric),
                     const SizedBox(height: 16),
-                    _buildMetricRow("Technical Accuracy", technicalAccuracy),
+                    _buildMetricRow("Technical Accuracy", accuracyMetric),
                     const SizedBox(height: 16),
-                    _buildMetricRow("Communication", communication),
+                    _buildMetricRow("Communication", communicationMetric),
                   ],
                 ),
               ),
               const SizedBox(height: 24),
 
-              // 4. AI Feedback Section
+              // 4. Clean Structural Consolidated AI Insights Block Display
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
@@ -197,89 +224,33 @@ class HistoryItemSummary extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "AI Feedback",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.psychology_rounded,
+                          color: Color(0xFF0A898D),
+                          size: 24,
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
+                          "AI Insights",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      aiInsights,
+                      style: const TextStyle(
+                        fontSize: 14,
                         color: Color(0xFF1E293B),
+                        height: 1.5,
+                        fontWeight: FontWeight.w400,
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                    
-                    // What went well
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(
-                          Icons.check_circle_rounded,
-                          color: Color(0xFF22C55E),
-                          size: 22,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "What went well",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF22C55E),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                wentWell,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Color(0xFF1E293B),
-                                  height: 1.4,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-
-                    // To improve
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(
-                          Icons.error_rounded,
-                          color: Color(0xFFEF4444),
-                          size: 22,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "To improve",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFFEF4444),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                toImprove,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Color(0xFF1E293B),
-                                  height: 1.4,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
                     ),
                   ],
                 ),
@@ -300,7 +271,7 @@ class HistoryItemSummary extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 15,
             spreadRadius: 1,
             offset: const Offset(0, 4),
@@ -322,7 +293,10 @@ class HistoryItemSummary extends StatelessWidget {
     );
   }
 
-  Widget _buildMetricRow(String label, int value) {
+  Widget _buildMetricRow(String label, double value) {
+    // Convert 0.0-1.0 proportional value scales into human friendly percentage formats
+    final int displayPercentage = (value * 100).round().clamp(0, 100);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -338,7 +312,7 @@ class HistoryItemSummary extends StatelessWidget {
               ),
             ),
             Text(
-              "$value%",
+              "$displayPercentage%",
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
@@ -351,7 +325,7 @@ class HistoryItemSummary extends StatelessWidget {
         ClipRRect(
           borderRadius: BorderRadius.circular(10),
           child: LinearProgressIndicator(
-            value: value / 100.0,
+            value: value.clamp(0.0, 1.0),
             minHeight: 7,
             backgroundColor: const Color(0xFFE2E8F0),
             valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF0A898D)),
@@ -361,4 +335,3 @@ class HistoryItemSummary extends StatelessWidget {
     );
   }
 }
-

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:interviya/data/models/user_model.dart';
+import 'package:interviya/data/providers/user_provider.dart';
 import 'package:interviya/data/services/auth_service.dart';
 import 'package:interviya/screens/setup.dart';
 import 'package:interviya/screens/sign_up.dart';
 import 'package:interviya/widgets/custom_text_field.dart';
 import 'package:interviya/widgets/main_wrapper.dart';
+import 'package:provider/provider.dart';
 
 class SignIn extends StatefulWidget {
   const SignIn({super.key});
@@ -15,45 +17,116 @@ class SignIn extends StatefulWidget {
 
 class _SignInState extends State<SignIn> {
   bool isLoading = false;
+  bool isGoogleLoading = false;
   bool obsecure = true;
-  TextEditingController email = TextEditingController();
-  TextEditingController password = TextEditingController();
+  final TextEditingController email = TextEditingController();
+  final TextEditingController password = TextEditingController();
   final _formkey = GlobalKey<FormState>();
-  void handleSignIn() async {
-  if (!_formkey.currentState!.validate()) return;
 
-  setState(() => isLoading = true);
+  void handleGoogleSignIn() async {
+    if (isGoogleLoading) return;
+    setState(() => isGoogleLoading = true);
+    
+    try {
+      String? result = await AuthService().signInWithGoogle();
 
-  String? result = await AuthService().signInUser(
-    email: email.text,
-    password: password.text,
-  );
+      if (!mounted) return;
 
-  if (result == "success") {
-    UserModel? userProfile = await AuthService().getUserData(); 
+      if (result == "success") {
+        UserModel? userProfile = await AuthService().getUserData();
 
-    setState(() => isLoading = false);
+        if (!mounted) return;
+        setState(() => isGoogleLoading = false);
 
-    if (mounted) {
-      if (userProfile != null && userProfile.hasFinishedSetup == true) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MainWrapper()),
-        );
+        if (userProfile != null) {
+          Provider.of<UserProvider>(context, listen: false).setUser(userProfile);
+
+          if (userProfile.hasFinishedSetup == true) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const MainWrapper()),
+            );
+          } else {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const Setup()),
+            );
+          }
+        }
       } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const Setup()),
+        setState(() => isGoogleLoading = false);
+        if (result != "canceled") {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result ?? "An error occurred during Google Sign-In"),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => isGoogleLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Google Sign-In Exception: $e")),
+      );
+    }
+  }
+
+  void handleSignIn() async {
+    if (!_formkey.currentState!.validate()) return;
+    if (isLoading) return;
+    setState(() => isLoading = true);
+
+    try {
+      String? result = await AuthService().signInUser(
+        email: email.text.trim(),
+        password: password.text,
+      );
+
+      if (!mounted) return; 
+
+      if (result == "success") {
+        UserModel? userProfile = await AuthService().getUserData();
+
+        if (!mounted) return;
+        setState(() => isLoading = false);
+
+        if (userProfile != null) {
+          Provider.of<UserProvider>(context, listen: false).setUser(userProfile);
+
+          if (userProfile.hasFinishedSetup == true) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const MainWrapper()),
+            );
+          } else {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const Setup()),
+            );
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Failed to retrieve user profile configuration."),
+            ),
+          );
+        }
+      } else {
+        setState(() => isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result ?? "An error occurred")),
         );
       }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Authentication process failed: $e")),
+      );
     }
-  } else {
-    setState(() => isLoading = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(result ?? "An error occurred")),
-    );
   }
-}
+
   @override
   void dispose() {
     email.dispose();
@@ -65,7 +138,7 @@ class _SignInState extends State<SignIn> {
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
-      backgroundColor: Color(0xffF8FAFC),
+      backgroundColor: const Color(0xffF8FAFC),
       body: SingleChildScrollView(
         child: Form(
           key: _formkey,
@@ -75,7 +148,7 @@ class _SignInState extends State<SignIn> {
                 child: Image.asset("assets/images/wave.png", fit: BoxFit.cover),
               ),
               Padding(
-                padding: EdgeInsets.only(
+                padding: const EdgeInsets.only(
                   top: 100,
                   left: 30,
                   right: 30,
@@ -88,7 +161,7 @@ class _SignInState extends State<SignIn> {
                       "assets/images/login.png",
                       height: screenHeight * 0.20,
                     ),
-                    Text(
+                    const Text(
                       "Welcome Back!",
                       textAlign: TextAlign.center,
                       style: TextStyle(
@@ -97,12 +170,12 @@ class _SignInState extends State<SignIn> {
                         color: Color(0xff1E293B),
                       ),
                     ),
-                    Text(
+                    const Text(
                       "Login To Continue Your Prep",
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Color(0xff64748B)),
                     ),
-                    SizedBox(height: 25),
+                    const SizedBox(height: 25),
                     CustomTextField(
                       hintText: "Email Address",
                       icon: Icons.mail,
@@ -120,79 +193,107 @@ class _SignInState extends State<SignIn> {
                         return null;
                       },
                     ),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     CustomTextField(
                       hintText: "Password",
                       icon: Icons.lock,
                       controller: password,
                       suffixIcon: GestureDetector(
-                        onTap: (){setState(() {
-                          obsecure = !obsecure;
-                        });},
-                      child: Icon(
-                        obsecure ? Icons.remove_red_eye_outlined : Icons.visibility_off_outlined,
-                        color: Color(0xff0A898D),
+                        onTap: () {
+                          setState(() {
+                            obsecure = !obsecure;
+                          });
+                        },
+                        child: Icon(
+                          obsecure
+                              ? Icons.remove_red_eye_outlined
+                              : Icons.visibility_off_outlined,
+                          color: const Color(0xff0A898D),
+                        ),
                       ),
-                      ), 
                       obscureText: obsecure,
                       validator: (value) {
-                        if (value == null) {
-                          return "Password must be valid";
+                        // FIXED: Catches empty inputs or strings with only whitespace
+                        if (value == null || value.trim().isEmpty) {
+                          return "Please enter your password";
                         }
                         return null;
                       },
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: isLoading ? null : handleSignIn,
                       style: ElevatedButton.styleFrom(
                         elevation: 8,
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        backgroundColor: Color(0xff0A898D),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        backgroundColor: const Color(0xff0A898D),
                         foregroundColor: Colors.white,
                       ),
                       child: isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
                           : const Text(
                               "Sign In",
                               style: TextStyle(fontSize: 20),
                             ),
                     ),
-                    SizedBox(height: 15),
-                    Text(
+                    const SizedBox(height: 15),
+                    const Text(
                       "OR",
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Color(0xff64748B)),
                     ),
-                    SizedBox(height: 15),
+                    const SizedBox(height: 15),
                     ElevatedButton.icon(
-                      onPressed: () {},
+                      onPressed: isGoogleLoading ? null : handleGoogleSignIn,
                       style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
                         backgroundColor: Colors.white,
+                        disabledBackgroundColor: Colors.white70,
                       ),
-                      icon: Image.asset(
-                        'assets/images/google_logo.png',
-                        height: 22,
-                      ),
+                      icon: isGoogleLoading
+                          ? const SizedBox(
+                              height: 22,
+                              width: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Color(0xff0A898D),
+                              ),
+                            )
+                          : Image.asset(
+                              'assets/images/google_logo.png',
+                              height: 22,
+                              errorBuilder: (context, error, stackTrace) => const Icon(Icons.g_mobiledata),
+                            ),
                       label: Text(
-                        'Sign in with Google',
-                        style: TextStyle(fontSize: 20, color: Colors.black),
+                        isGoogleLoading ? 'Connecting...' : 'Sign in with Google',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          color: Colors.black,
+                        ),
                       ),
                     ),
-                    SizedBox(height: 5),
+                    const SizedBox(height: 5),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text("Don't have an account?"),
+                        const Text("Don't have an account? "),
                         InkWell(
                           onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => SignUp()),
+                              MaterialPageRoute(
+                                builder: (context) => const SignUp(),
+                              ),
                             );
                           },
-                          child: Text(
+                          child: const Text(
                             "Sign Up",
                             style: TextStyle(color: Color(0xff0A898D)),
                           ),

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:provider/provider.dart';
+import 'package:interviya/data/models/history_model.dart';
+import 'package:interviya/data/providers/history_provider.dart';
 
 class Stats extends StatefulWidget {
   final VoidCallback onBack;
@@ -12,21 +15,23 @@ class Stats extends StatefulWidget {
 class _StatsState extends State<Stats> {
   @override
   Widget build(BuildContext context) {
+    final historyProvider = context.watch<HistoryProvider>();
+
     return Scaffold(
-      backgroundColor: Color(0xFFF8FAFF),
+      backgroundColor: const Color(0xFFF8FAFF),
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(60),
+        preferredSize: const Size.fromHeight(60),
         child: AppBar(
-          backgroundColor: Color(0xFF0A898D),
+          backgroundColor: const Color(0xFF0A898D),
           elevation: 0,
           leading: Padding(
-            padding: EdgeInsets.only(top: 5),
+            padding: const EdgeInsets.only(top: 5),
             child: IconButton(
-              icon: Icon(Icons.arrow_back, color: Colors.white, size: 35),
+              icon: const Icon(Icons.arrow_back, color: Colors.white, size: 35),
               onPressed: widget.onBack,
             ),
           ),
-          title: Padding(
+          title: const Padding(
             padding: EdgeInsets.only(top: 5),
             child: Text(
               "Analytics",
@@ -37,68 +42,137 @@ class _StatsState extends State<Stats> {
               ),
             ),
           ),
-          shape: RoundedRectangleBorder(
+          shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(bottom: Radius.circular(25)),
           ),
         ),
       ),
-      body: ScrollConfiguration(
-        behavior: ScrollBehavior().copyWith(scrollbars: false),
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 10),
-              _buildHireProbabilityCard(),
-              SizedBox(height: 26),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildSmallChartCard(
-                      "Voice Tone Analysis",
-                      "Voice Flow",
-                      _buildLineChart(),
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: _buildSmallChartCard(
-                      "Technical & Soft Skills",
-                      "",
-                      _buildBarChart(),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 26),
+      body: _buildBody(historyProvider),
+    );
+  }
 
-              Text(
-                "Key Performance Indicators",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
-                ),
-              ),
-              SizedBox(height: 12),
-              _buildRadarChartCard(),
-              SizedBox(height: 26),
+  Widget _buildBody(HistoryProvider provider) {
+    if (provider.isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: Color(0xFF0A898D)),
+      );
+    }
 
-              _buildWeeklyActivityCard(),
-            ],
+    if (provider.errorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Text(
+            "Error loading analytics data: ${provider.errorMessage}",
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.redAccent),
           ),
+        ),
+      );
+    }
+
+    // Safely look up categorized history via our updated type-safe system
+    final categorizedData = provider.getCategorizedHistory();
+    
+    final historyList = categorizedData.totalFilteredCount > 0 
+        ? categorizedData.thisWeek + categorizedData.lastMonth + categorizedData.older
+        : <HistoryModel>[];
+
+    if (historyList.isEmpty) {
+      return const Center(
+        child: Text(
+          "No interview history found.\nComplete an interview to see data analytics!",
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.grey, fontSize: 16),
+        ),
+      );
+    }
+
+    return ScrollConfiguration(
+      behavior: const ScrollBehavior().copyWith(scrollbars: false),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 10),
+            _buildHireProbabilityCard(historyList),
+            const SizedBox(height: 26),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildSmallChartCard(
+                    "Voice Tone Analysis",
+                    "Voice Flow Progress",
+                    _buildLineChart(historyList),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildSmallChartCard(
+                    "Technical & Soft Skills",
+                    "",
+                    _buildBarChart(historyList),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 26),
+            const Text(
+              "Key Performance Indicators",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+            const SizedBox(height: 12),
+            _buildRadarChartCard(historyList.first), // Focuses metrics on the latest run
+            const SizedBox(height: 26),
+            _buildWeeklyActivityCard(historyList),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildHireProbabilityCard() {
+  double _parseOverallScore(String? scoreStr) {
+    if (scoreStr == null || scoreStr.isEmpty) return 0.0;
+    String cleanScore = scoreStr.replaceAll('%', '').trim();
+    return double.tryParse(cleanScore) ?? 0.0;
+  }
+
+  double _getNestedMetric(Map<String, dynamic> data, String key, double fallback) {
+    if (!data.containsKey(key) || data[key] == null) return fallback;
+    final val = data[key];
+    if (val is num) return val.toDouble();
+    return double.tryParse(val.toString()) ?? fallback;
+  }
+
+  // 1. COMPUTE AGGREGATED RUN PROGRESS
+  Widget _buildHireProbabilityCard(List<HistoryModel> history) {
+    double totalScore = 0;
+    for (var item in history) {
+      totalScore += _parseOverallScore(item.overallScore);
+    }
+    double averageScore = (totalScore / history.length).clamp(0, 100);
+    double remaining = 100 - averageScore;
+
+    String status = "Needs Work";
+    Color statusColor = Colors.redAccent;
+    if (averageScore >= 75) {
+      status = "Highly Likely";
+      statusColor = Colors.teal;
+    } else if (averageScore >= 50) {
+      status = "Likely";
+      statusColor = Colors.orange;
+    }
+
     return _cardWrapper(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          Text(
+          const Text(
             "Hire\nProbability",
             style: TextStyle(
               fontSize: 18,
@@ -115,14 +189,14 @@ class _StatsState extends State<Stats> {
                 centerSpaceRadius: 0,
                 sections: [
                   PieChartSectionData(
-                    value: 70,
-                    color: Color(0xFF0A898D),
+                    value: averageScore == 0 ? 1 : averageScore,
+                    color: const Color(0xFF0A898D),
                     radius: 35,
                     showTitle: false,
                   ),
                   PieChartSectionData(
-                    value: 30,
-                    color: Color(0xFFCBD5E1),
+                    value: averageScore == 0 ? 99 : remaining,
+                    color: const Color(0xFFCBD5E1),
                     radius: 35,
                     showTitle: false,
                   ),
@@ -133,17 +207,17 @@ class _StatsState extends State<Stats> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("70%", style: TextStyle(fontWeight: FontWeight.bold)),
+              Text("${averageScore.toStringAsFixed(0)}%", style: const TextStyle(fontWeight: FontWeight.bold)),
               Text(
-                "Status: Highly Likely",
+                "Status: $status",
                 style: TextStyle(
                   fontSize: 10,
-                  color: Colors.teal,
+                  color: statusColor,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Text(
-                "Accuracy: 94%",
+              const Text(
+                "Based on aggregate history",
                 style: TextStyle(fontSize: 10, color: Colors.grey),
               ),
             ],
@@ -153,25 +227,38 @@ class _StatsState extends State<Stats> {
     );
   }
 
-  Widget _buildLineChart() {
+  // 2. TIMELINE CHART GENERATOR
+  Widget _buildLineChart(List<HistoryModel> history) {
+    List<HistoryModel> timeline = history.reversed.toList();
+    List<FlSpot> spots = [];
+
+    for (int i = 0; i < timeline.length; i++) {
+      double confidence = _getNestedMetric(timeline[i].interviewData, 'confidence', 60.0);
+      spots.add(FlSpot(i.toDouble(), confidence));
+    }
+
+    if (spots.length == 1) {
+      spots.insert(0, FlSpot(0, spots[0].y));
+    }
+
     return LineChart(
       LineChartData(
-        gridData: FlGridData(show: true, drawVerticalLine: false),
-        titlesData: FlTitlesData(show: false),
+        gridData: const FlGridData(show: true, drawVerticalLine: false),
+        titlesData: const FlTitlesData(show: false),
         borderData: FlBorderData(show: false),
         lineBarsData: [
           LineChartBarData(
-            spots: [FlSpot(0, 70), FlSpot(1, 30), FlSpot(2, 55), FlSpot(3, 5)],
+            spots: spots,
             isCurved: true,
-            color: Color(0xFF0A898D),
+            color: const Color(0xFF0A898D),
             barWidth: 3,
-            dotData: FlDotData(show: false),
+            dotData: const FlDotData(show: false),
             belowBarData: BarAreaData(
               show: true,
               gradient: LinearGradient(
                 colors: [
-                  Color(0xFF0A898D).withValues(alpha: 0.4),
-                  Color(0xFF0A898D).withValues(alpha: 0.0),
+                  const Color(0xFF0A898D).withAlpha((0.4 * 255).toInt()),
+                  const Color(0xFF0A898D).withAlpha(0),
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -183,7 +270,19 @@ class _StatsState extends State<Stats> {
     );
   }
 
-  Widget _buildBarChart() {
+  // 3. BAR CHART ENGINE
+  Widget _buildBarChart(List<HistoryModel> history) {
+    double communication = 0, confidence = 0, problemSolving = 0, knowledge = 0;
+
+    for (var item in history) {
+      communication += _getNestedMetric(item.interviewData, 'communication', 50.0);
+      confidence += _getNestedMetric(item.interviewData, 'confidence', 50.0);
+      problemSolving += _getNestedMetric(item.interviewData, 'problemSolving', 50.0);
+      knowledge += _getNestedMetric(item.interviewData, 'knowledge', 50.0);
+    }
+
+    double total = history.length.toDouble();
+
     return BarChart(
       BarChartData(
         maxY: 100,
@@ -194,8 +293,8 @@ class _StatsState extends State<Stats> {
               FlLine(color: Colors.grey.shade200, strokeWidth: 1),
         ),
         titlesData: FlTitlesData(
-          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
@@ -203,7 +302,7 @@ class _StatsState extends State<Stats> {
               reservedSize: 25,
               getTitlesWidget: (value, meta) => Text(
                 '${value.toInt()}',
-                style: TextStyle(fontSize: 9, color: Colors.grey),
+                style: const TextStyle(fontSize: 9, color: Colors.grey),
               ),
             ),
           ),
@@ -211,27 +310,27 @@ class _StatsState extends State<Stats> {
             sideTitles: SideTitles(
               showTitles: true,
               getTitlesWidget: (value, meta) {
-                const labels = ['Communication', 'Confidence', 'Problem Solving', 'Knowledge'];
+                const labels = ['Comm.', 'Conf.', 'Prob.', 'Know.'];
                 if (value.toInt() >= 0 && value.toInt() < labels.length) {
                   return Padding(
-                    padding: EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.only(top: 8),
                     child: Text(
                       labels[value.toInt()],
-                      style: TextStyle(fontSize: 3, color: Colors.grey),
+                      style: const TextStyle(fontSize: 8, color: Colors.grey, fontWeight: FontWeight.w500),
                     ),
                   );
                 }
-                return SizedBox();
+                return const SizedBox();
               },
             ),
           ),
         ),
         borderData: FlBorderData(show: false),
         barGroups: [
-          _makeBarGroup(0, 50),
-          _makeBarGroup(1, 75),
-          _makeBarGroup(2, 78),
-          _makeBarGroup(3, 68),
+          _makeBarGroup(0, communication / total),
+          _makeBarGroup(1, confidence / total),
+          _makeBarGroup(2, problemSolving / total),
+          _makeBarGroup(3, knowledge / total),
         ],
       ),
     );
@@ -242,10 +341,10 @@ class _StatsState extends State<Stats> {
       x: x,
       barRods: [
         BarChartRodData(
-          toY: y,
+          toY: y.clamp(0, 100),
           width: 14,
           borderRadius: BorderRadius.circular(20),
-          gradient: LinearGradient(
+          gradient: const LinearGradient(
             begin: Alignment.bottomCenter,
             end: Alignment.topCenter,
             colors: [Color(0xFF1E293B), Color(0xFF0A898D), Color(0xFF00D4FF)],
@@ -256,79 +355,86 @@ class _StatsState extends State<Stats> {
     );
   }
 
-  Widget _buildRadarChartCard() {
+  // 4. MULTI-AXIS PERFORMANCE MAP ENGINE
+  Widget _buildRadarChartCard(HistoryModel latestInterview) {
+    final data = latestInterview.interviewData;
+    
+    double clarity = _getNestedMetric(data, 'clarity', 70);
+    double pace = _getNestedMetric(data, 'speakingPace', 75);
+    double tone = _getNestedMetric(data, 'professionalTone', 60);
+    double speed = _getNestedMetric(data, 'speed', 80);
+    double confidence = _getNestedMetric(data, 'confidence', 70);
+
     return _cardWrapper(
       child: Column(
         children: [
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           SizedBox(
             height: 240,
             child: RadarChart(
               RadarChartData(
                 radarShape: RadarShape.polygon,
-                tickBorderData:  BorderSide(
-                  color: Colors.transparent,
-                ), 
-                ticksTextStyle: TextStyle(
-                  color: Colors.transparent,
-                  fontSize: 0,
-                ),
+                tickBorderData: const BorderSide(color: Colors.transparent),
+                ticksTextStyle: const TextStyle(color: Colors.transparent, fontSize: 0),
                 dataSets: [
                   RadarDataSet(
-                    fillColor: Color(0xFF0A898D).withValues(alpha: 0.6),
-                    borderColor: Color(0xFF0A898D),
+                    fillColor: const Color(0xFF0A898D).withAlpha((0.3 * 255).toInt()),
+                    borderColor: const Color(0xFF0A898D),
                     entryRadius: 4,
                     dataEntries: [
-                      RadarEntry(value: 80),
-                      RadarEntry(value: 85),
-                      RadarEntry(value: 60),
-                      RadarEntry(value: 90),
-                      RadarEntry(value: 70),
+                      RadarEntry(value: clarity),
+                      RadarEntry(value: pace),
+                      RadarEntry(value: tone),
+                      RadarEntry(value: speed),
+                      RadarEntry(value: confidence),
                     ],
                   ),
                 ],
-
-                radarBorderData: BorderSide(
-                  color: Color(0xFF0A898D),
-                  width: 1.5,
-                ),
-                gridBorderData: BorderSide(
-                  color: Color(0xFF0A898D).withValues(alpha: 0.2),
-                  width: 1,
-                ),
+                radarBorderData: const BorderSide(color: Color(0xFF0A898D), width: 1.5),
+                gridBorderData: BorderSide(color: const Color(0xFF0A898D).withAlpha((0.2 * 255).toInt()), width: 1),
                 titlePositionPercentageOffset: 0.15,
-                titleTextStyle: TextStyle(
-                  fontSize: 10,
-                  color: Colors.grey,
-                  fontWeight: FontWeight.bold,
-                ),
-
+                titleTextStyle: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold),
                 getTitle: (index, angle) {
-                  const labels = [
-                    'Clarity\n80',
-                    'Speaking Pace\n85',
-                    'Prof. Tone\n60',
-                    'Speed\n90',
-                    'Confidence\n70',
+                  final labels = [
+                    'Clarity\n${clarity.toStringAsFixed(0)}',
+                    'Speaking Pace\n${pace.toStringAsFixed(0)}',
+                    'Prof. Tone\n${tone.toStringAsFixed(0)}',
+                    'Speed\n${speed.toStringAsFixed(0)}',
+                    'Confidence\n${confidence.toStringAsFixed(0)}',
                   ];
                   return RadarChartTitle(text: labels[index]);
                 },
               ),
             ),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
         ],
       ),
     );
   }
 
-  Widget _buildWeeklyActivityCard() {
+  // 5. ACTIVITY HEATMAP GRID MAPPING SESSIONS
+  Widget _buildWeeklyActivityCard(List<HistoryModel> history) {
     final List<String> days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    final DateTime now = DateTime.now();
+    final Set<int> activeIndices = {};
+
+    for (var item in history) {
+      int differenceInDays = now.difference(item.timestamp).inDays;
+      
+      if (differenceInDays >= 0 && differenceInDays < 28) {
+        int gridIndex = 27 - differenceInDays;
+        if (gridIndex >= 0 && gridIndex < 28) {
+          activeIndices.add(gridIndex);
+        }
+      }
+    }
+
     return _cardWrapper(
       child: Row(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(12.0),
+          const Padding(
+            padding: EdgeInsets.all(12.0),
             child: Text(
               "Weekly\nActivity",
               style: TextStyle(
@@ -338,7 +444,7 @@ class _StatsState extends State<Stats> {
               ),
             ),
           ),
-          Spacer(),
+          const Spacer(),
           Column(
             children: [
               SizedBox(
@@ -349,7 +455,7 @@ class _StatsState extends State<Stats> {
                       .map(
                         (day) => Text(
                           day,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                             color: Colors.grey,
@@ -359,25 +465,23 @@ class _StatsState extends State<Stats> {
                       .toList(),
                 ),
               ),
-              SizedBox(height: 6),
+              const SizedBox(height: 6),
               SizedBox(
                 width: 160,
                 child: GridView.builder(
                   shrinkWrap: true,
                   itemCount: 28,
-                  physics: NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 7,
                     mainAxisSpacing: 4,
                     crossAxisSpacing: 4,
                   ),
                   itemBuilder: (context, index) {
-                    Color cellColor = Colors.grey.shade200;
-                    if (index % 4 == 0) {
-                      cellColor = Color(0xFF0A898D);
-                    } else if (index % 3 == 0) {
-                      cellColor = Color(0xFF0A898D).withValues(alpha: 0.4);
-                    }
+                    Color cellColor = activeIndices.contains(index) 
+                        ? const Color(0xFF0A898D) 
+                        : Colors.grey.shade200;
+
                     return Container(
                       decoration: BoxDecoration(
                         color: cellColor,
@@ -401,11 +505,11 @@ class _StatsState extends State<Stats> {
         children: [
           Text(
             title,
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
           ),
           if (subTitle.isNotEmpty)
-            Text(subTitle, style: TextStyle(fontSize: 8, color: Colors.grey)),
-          SizedBox(height: 10),
+            Text(subTitle, style: const TextStyle(fontSize: 8, color: Colors.grey)),
+          const SizedBox(height: 10),
           SizedBox(height: 110, child: chart),
         ],
       ),
@@ -415,15 +519,15 @@ class _StatsState extends State<Stats> {
   Widget _cardWrapper({required Widget child}) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(12),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Color(0xff1E293B).withValues(alpha: 0.1),
+            color: const Color(0xff1E293B).withAlpha((0.1 * 255).toInt()),
             blurRadius: 20,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),

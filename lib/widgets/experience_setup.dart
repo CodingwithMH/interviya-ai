@@ -23,20 +23,21 @@ class _ExperienceSetupState extends State<ExperienceSetup> {
   final List<Map<String, dynamic>> experiences = [
     {
       "icon": Icons.eco,
-      "heading": "Beginner / Student",
-      "sub_heading": "0 - 1 years of experience",
+      "heading": "Beginner",
+      "sub_heading": "0-1 years of experience",
     },
     {
       "icon": Icons.rocket_launch,
       "heading": "Intermediate",
-      "sub_heading": "1 - 4 years of experience",
+      "sub_heading": "1-4 years of experience",
     },
     {
       "icon": Icons.workspace_premium,
-      "heading": "Senior / Expert",
+      "heading": "Senior",
       "sub_heading": "5+ years of experience",
     },
   ];
+
   @override
   void initState() {
     super.initState();
@@ -71,27 +72,30 @@ class _ExperienceSetupState extends State<ExperienceSetup> {
                 child: Row(
                   spacing: 20,
                   children: [
-                    Icon(item["icon"], size: 50, color: Color(0xff0A898D)),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: 1,
-                      children: [
-                        Text(
-                          item["heading"]!,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                            color: Color(0xff0A898D),
+                    Icon(item["icon"], size: 50, color: const Color(0xff0A898D)),
+                    
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: 1,
+                        children: [
+                          Text(
+                            item["heading"]!,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                              color: Color(0xff0A898D),
+                            ),
                           ),
-                        ),
-                        Text(
-                          item["sub_heading"]!,
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Color(0xff0A898D),
+                          Text(
+                            item["sub_heading"]!,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Color(0xff0A898D),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -100,27 +104,17 @@ class _ExperienceSetupState extends State<ExperienceSetup> {
           );
         }),
         Align(
-          alignment: AlignmentGeometry.center,
+          alignment: Alignment.center,
           child: NextPrevious(
-  onPrevious: widget.onPrevious, 
-  onNext: (widget.selectedExperience?.isNotEmpty ?? false)
-      ? widget.onNext 
-      : () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Please select a goal!")),
-          );
-        },
-),
-          // child: ElevatedButton(
-          //   onPressed: widget.onContinue,
-          //   style: ElevatedButton.styleFrom(
-          //     elevation: 8,
-          //     padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-          //     backgroundColor: Color(0xff0A898D),
-          //     foregroundColor: Colors.white,
-          //   ),
-          //   child: Text("Continue", style: TextStyle(fontSize: 22)),
-          // ),
+            onPrevious: widget.onPrevious, 
+            onNext: (widget.selectedExperience?.isNotEmpty ?? false)
+                ? widget.onNext 
+                : () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Please select an experience level!")),
+                    );
+                  },
+          ),
         ),
       ],
     );
