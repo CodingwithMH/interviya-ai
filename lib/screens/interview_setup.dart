@@ -311,23 +311,23 @@ class _InterviewSetupState extends State<InterviewSetup> {
                     }
 
                     try {
-                      setState(() {
-                        widget.interview.count += 1;
-                      });
+  setState(() {
+    widget.interview.count += 1;
+  });
 
-                      await FirebaseFirestore.instance
-                          .collection('interviews')
-                          .doc(
-                            widget.interview.title,
-                          )
-                          .update({'count': FieldValue.increment(1)});
+  if (widget.interview.id != null && widget.interview.id!.isNotEmpty) {
+    await FirebaseFirestore.instance
+        .collection('interviews')
+        .doc(widget.interview.id) //  Changed from .title to .id
+        .update({'count': FieldValue.increment(1)});
 
-                      print("Interview count incremented successfully.");
-                    } catch (dbError) {
-                      print(
-                        "Failed to increment counter in Firestore: $dbError",
-                      );
-                    }
+    print("Interview count incremented successfully.");
+  } else {
+    print("Error: The interview document ID is empty or null.");
+  }
+} catch (dbError) {
+  print("Failed to increment counter in Firestore: $dbError");
+}
 
                     provider.updateSession(
                       data: widget.interview
