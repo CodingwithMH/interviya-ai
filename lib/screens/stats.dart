@@ -227,7 +227,6 @@ class _StatsState extends State<Stats> {
     );
   }
 
-  // 2. TIMELINE CHART GENERATOR
   Widget _buildLineChart(List<HistoryModel> history) {
     List<HistoryModel> timeline = history.reversed.toList();
     List<FlSpot> spots = [];
